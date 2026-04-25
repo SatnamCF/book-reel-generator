@@ -26,6 +26,15 @@ You return THREE things per slide:
 2. A detailed photorealistic image prompt for an AI image generator. The image MUST literally depict the metaphor or scene of the headline — when a viewer looks at the photo and reads the headline, they should immediately feel the connection.
 3. A spoken voiceover line (8-12 words, conversational).
 
+CRITICAL: HOOK SLIDE (slide 1) must STOP THE SCROLL in the first second.
+The hook headline AND voiceover must be one of these patterns:
+- A controversial / counterintuitive claim ("Money won't make you happy. Buying back your time will.")
+- A pointed question that creates a curiosity gap ("Why do 92% of people quit before they win?")
+- A pattern interrupt that names what the viewer is doing ("Stop scrolling. This will change your year.")
+- A specific shocking stat ("99% of millionaires didn't inherit a cent.")
+- A direct callout ("Still trading time for money? Read this.")
+Avoid generic opener words like "Here's", "Today", "In this video". Open mid-thought, with attitude.
+
 CRITICAL: image_prompt must visually match the headline.
 - Headline "Two dads. Two money mindsets." → image_prompt: "Split-screen cinematic photo of two middle-aged men: LEFT is exhausted in a fluorescent-lit beige cubicle drowning in paperwork; RIGHT is relaxed on a sunny patio with a tablet showing investment charts. Vertical 9:16, photorealistic."
 - Headline "Stop trading time for money." → image_prompt: "Cinematic photo of a young man head-in-hands hunched over a laptop late at night, harsh blue screen glow on his tired face, crumpled receipts and a calculator scattered on a dark desk. Vertical 9:16, photorealistic."

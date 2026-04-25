@@ -156,6 +156,39 @@ def _draw_headline(img: Image.Image, text: str, top_y: int = 260, font_size: int
     return img
 
 
+def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
+    """Larger, more aggressive hook styling for slide 1.
+
+    Bigger font, slightly higher start, plus a small gold attention badge above
+    the headline to lock the viewer in the first second.
+    """
+    if not text:
+        return img
+    # Gold attention chip above the headline
+    d = ImageDraw.Draw(img)
+    chip_text = "STOP SCROLLING"
+    f_chip = _font(38, bold=True)
+    chip_bbox = d.textbbox((0, 0), chip_text, font=f_chip)
+    chip_w = chip_bbox[2] - chip_bbox[0]
+    chip_h = chip_bbox[3] - chip_bbox[1]
+    chip_pad_x, chip_pad_y = 28, 10
+    chip_y = 200
+    d.rounded_rectangle(
+        [
+            W // 2 - chip_w // 2 - chip_pad_x,
+            chip_y - chip_pad_y,
+            W // 2 + chip_w // 2 + chip_pad_x,
+            chip_y + chip_h + chip_pad_y,
+        ],
+        radius=30,
+        fill=(255, 215, 100),
+    )
+    d.text((W // 2, chip_y + chip_h // 2), chip_text, font=f_chip, fill=(35, 25, 10), anchor="mm")
+
+    # Bigger headline
+    return _draw_headline(img, text, top_y=320, font_size=120, max_width=940)
+
+
 def _draw_cta(img: Image.Image, headline: str = "") -> Image.Image:
     """Premium CTA: bigger button, label above, more contrast."""
     img = _add_bottom_gradient(img, max_alpha=180)
@@ -191,7 +224,10 @@ def render_slide(slide: dict, slide_index: int = 0) -> Image.Image:
     img = _color_grade(photo)
     img = _add_vignette(img, strength=80)
     img = _add_cinematic_gradient(img)
-    img = _draw_headline(img, slide.get("headline", ""))
+    if slide.get("type") == "hook":
+        img = _draw_hook_headline(img, slide.get("headline", ""))
+    else:
+        img = _draw_headline(img, slide.get("headline", ""))
     if slide.get("type") == "cta":
         img = _draw_cta(img, slide.get("headline", ""))
     return img
@@ -205,11 +241,23 @@ async def _synth_one(text: str, out_path: Path, rate: str) -> None:
     await communicate.save(str(out_path))
 
 
+def _bump_rate(rate: str, extra_pct: int) -> str:
+    """Add `extra_pct` to a rate like '+10%' → '+18%'. Caps at +100%."""
+    sign = 1 if rate.startswith("+") else (-1 if rate.startswith("-") else 1)
+    n = int(rate.strip("+-%"))
+    new = sign * n + extra_pct
+    new = max(-15, min(100, new))
+    s = "+" if new >= 0 else ""
+    return f"{s}{new}%"
+
+
 async def _synth_all(slides: list[dict], voice_dir: Path, rate: str) -> list[Path]:
     paths = []
+    hook_rate = _bump_rate(rate, 8)  # extra urgency on the first line
     for i, slide in enumerate(slides):
         out = voice_dir / f"{i + 1:02d}.mp3"
-        await _synth_one(slide["voiceover"], out, rate)
+        slide_rate = hook_rate if i == 0 else rate
+        await _synth_one(slide["voiceover"], out, slide_rate)
         paths.append(out)
     return paths
 
@@ -244,26 +292,59 @@ def _zoom_clip(image_path: Path, duration: float, zoom_in: bool) -> CompositeVid
     return CompositeVideoClip([zoomed], size=(W, H)).with_duration(duration).with_fps(FPS)
 
 
+def _hook_punch_clip(image_path: Path, duration: float) -> CompositeVideoClip:
+    """Cinematic punch-in for the first slide.
+
+    Starts at 1.10x and snaps to 1.0x in the first 0.3s with cubic ease-out
+    (gives that 'thumb-stopping' impact landing), then drifts to 1.06x over
+    the remainder for a continuous Ken Burns feel.
+    """
+    base = ImageClip(str(image_path)).with_duration(duration).with_fps(FPS)
+    PUNCH_DUR = 0.3
+    PUNCH_FROM = 1.10
+    DRIFT_TO = 1.06
+
+    def scale_fn(t):
+        if t < PUNCH_DUR:
+            progress = t / PUNCH_DUR
+            ease = 1 - (1 - progress) ** 3
+            return PUNCH_FROM - (PUNCH_FROM - 1.0) * ease
+        post_t = (t - PUNCH_DUR) / max(0.001, duration - PUNCH_DUR)
+        return 1.0 + (DRIFT_TO - 1.0) * post_t
+
+    zoomed = base.resized(scale_fn).with_position(("center", "center"))
+    return CompositeVideoClip([zoomed], size=(W, H)).with_duration(duration).with_fps(FPS)
+
+
 def assemble_video(slide_paths: list[Path], voice_paths: list[Path], out_path: Path) -> float:
-    """Stitch with crossfades between consecutive slides."""
+    """Stitch with crossfades between consecutive slides.
+
+    Slide 1 gets special treatment: zero head-pad (voice starts immediately)
+    and a punch-in zoom for thumb-stopping impact in the first 3 seconds.
+    """
     visual_clips = []
     audio_clips = []
     cursor = 0.0
 
     for i, (slide_path, voice_path) in enumerate(zip(slide_paths, voice_paths)):
         voice = AudioFileClip(str(voice_path))
-        slide_dur = HEAD_PAD + voice.duration + TAIL_PAD + (CROSSFADE if i < len(slide_paths) - 1 else 0)
+        is_hook = (i == 0)
+        head = 0.0 if is_hook else HEAD_PAD
+        slide_dur = head + voice.duration + TAIL_PAD + (CROSSFADE if i < len(slide_paths) - 1 else 0)
 
-        clip = _zoom_clip(slide_path, slide_dur, zoom_in=(i % 2 == 0))
+        if is_hook:
+            clip = _hook_punch_clip(slide_path, slide_dur)
+        else:
+            clip = _zoom_clip(slide_path, slide_dur, zoom_in=(i % 2 == 0))
         if i > 0:
             clip = clip.with_effects([CrossFadeIn(CROSSFADE)])
         clip = clip.with_start(cursor)
         visual_clips.append(clip)
 
-        # Voice line starts at cursor + HEAD_PAD (after the crossfade has begun)
-        audio_clips.append(voice.with_start(cursor + HEAD_PAD + (CROSSFADE / 2 if i > 0 else 0)))
+        # Voice starts at cursor+head; subsequent slides nudge into the crossfade
+        audio_start = cursor + head + (CROSSFADE / 2 if i > 0 else 0)
+        audio_clips.append(voice.with_start(audio_start))
 
-        # Advance cursor accounting for the overlap
         cursor += slide_dur - (CROSSFADE if i < len(slide_paths) - 1 else 0)
 
     total_duration = cursor
