@@ -137,34 +137,60 @@ def _wrap_to_fit(text: str, font_size: int, max_width: int) -> tuple[list[str], 
     return textwrap.wrap(text, width=18) or [text], max(font_size - 24, 48)
 
 
-def _draw_headline(img: Image.Image, text: str, top_y: int = 260, font_size: int = 100, max_width: int = 920) -> Image.Image:
-    """Top-anchored bold white headline, multi-shadow for legibility."""
+def _draw_headline(
+    img: Image.Image,
+    text: str,
+    position: str = "top",
+    font_size: int = 100,
+    max_width: int = 920,
+) -> Image.Image:
+    """Bold white headline placed at top, center, or bottom of the slide.
+
+    `position`:
+        "top"    — top-anchored at y=260
+        "center" — vertically centered around H/2
+        "bottom" — bottom-anchored at y=H-460 (leaves room for safe area)
+    """
     if not text:
         return img
     lines, actual_size = _wrap_to_fit(text, font_size, max_width)
     fnt = _font(actual_size, bold=True)
     ascent, descent = fnt.getmetrics()
     line_h = ascent + descent + 8
+    block_h = line_h * len(lines)
+
+    if position == "center":
+        # First line's mid-anchor sits at center - block/2 + line/2
+        first_y = H // 2 - block_h // 2 + line_h // 2
+        anchor = "mm"
+    elif position == "bottom":
+        # Block ends at H - 460 (safe-area for caption/CTA region)
+        last_y = H - 460
+        first_y = last_y - block_h + line_h
+        anchor = "mm"
+    else:  # top
+        first_y = 260
+        anchor = "mt"
+
     d = ImageDraw.Draw(img)
-    y = top_y
-    for line in lines:
-        # Outline + drop shadow stack for cinematic punch
+    for i, line in enumerate(lines):
+        if anchor == "mm":
+            y = first_y + i * line_h
+        else:
+            y = first_y + i * line_h
         for dx, dy in ((5, 5), (3, 3), (-2, -2), (2, -2), (-2, 2)):
-            d.text((W // 2 + dx, y + dy), line, font=fnt, fill=(0, 0, 0), anchor="mt")
-        d.text((W // 2, y), line, font=fnt, fill=(255, 255, 255), anchor="mt")
-        y += line_h
+            d.text((W // 2 + dx, y + dy), line, font=fnt, fill=(0, 0, 0), anchor=anchor)
+        d.text((W // 2, y), line, font=fnt, fill=(255, 255, 255), anchor=anchor)
     return img
 
 
 def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
     """Larger, more aggressive hook styling for slide 1.
 
-    Bigger font, slightly higher start, plus a small gold attention badge above
-    the headline to lock the viewer in the first second.
+    Always top-positioned (chip + headline read top-to-bottom).
     """
     if not text:
         return img
-    # Gold attention chip above the headline
     d = ImageDraw.Draw(img)
     chip_text = "STOP SCROLLING"
     f_chip = _font(38, bold=True)
@@ -185,8 +211,19 @@ def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
     )
     d.text((W // 2, chip_y + chip_h // 2), chip_text, font=f_chip, fill=(35, 25, 10), anchor="mm")
 
-    # Bigger headline
-    return _draw_headline(img, text, top_y=320, font_size=120, max_width=940)
+    # Bigger headline, top-positioned (lower than default 260 to clear the chip)
+    lines, actual_size = _wrap_to_fit(text, 120, 940)
+    fnt = _font(actual_size, bold=True)
+    ascent, descent = fnt.getmetrics()
+    line_h = ascent + descent + 8
+    y = 320
+    d = ImageDraw.Draw(img)
+    for line in lines:
+        for dx, dy in ((5, 5), (3, 3), (-2, -2), (2, -2), (-2, 2)):
+            d.text((W // 2 + dx, y + dy), line, font=fnt, fill=(0, 0, 0), anchor="mt")
+        d.text((W // 2, y), line, font=fnt, fill=(255, 255, 255), anchor="mt")
+        y += line_h
+    return img
 
 
 def _draw_cta(img: Image.Image, headline: str = "") -> Image.Image:
@@ -227,7 +264,9 @@ def render_slide(slide: dict, slide_index: int = 0) -> Image.Image:
     if slide.get("type") == "hook":
         img = _draw_hook_headline(img, slide.get("headline", ""))
     else:
-        img = _draw_headline(img, slide.get("headline", ""))
+        # CTA always top so the gold pill at bottom doesn't collide
+        position = "top" if slide.get("type") == "cta" else slide.get("text_position", "top")
+        img = _draw_headline(img, slide.get("headline", ""), position=position)
     if slide.get("type") == "cta":
         img = _draw_cta(img, slide.get("headline", ""))
     return img

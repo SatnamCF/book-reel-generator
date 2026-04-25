@@ -78,6 +78,7 @@ Return JSON:
       "type": "hook" | "summary" | "cta",
       "headline": "<5-10 words, bold quotable text shown on the slide>",
       "image_prompt": "<detailed cinematic photorealistic image description>",
+      "text_position": "top" | "center" | "bottom",
       "voiceover": "<8-12 words, conversational narration>"
     }}
   ]
@@ -89,7 +90,13 @@ Rules:
 - Middle slides are "summary" — one big idea each, contrasting visual.
 - Headline is what's overlaid on the photo (not the same text as voiceover).
 - Image prompts should vary scene/setting across slides — don't repeat the same location.
-- All image prompts must include "vertical 9:16, photorealistic"."""
+- All image prompts must include "vertical 9:16, photorealistic".
+
+text_position rules — pick based on where the photo's MAIN SUBJECT sits:
+- "top" — subject in the lower half of the frame (sky/ceiling above is empty). Text reads cleanly above the subject. Examples: a person sitting on a beach with sky above; a tiny figure in vast space; subject at frame's bottom edge.
+- "bottom" — subject in the upper half of the frame (foreground/floor below is empty). Text drops in below the subject. Examples: bird's-eye shot of a desk with empty foreground; portrait with chest-up framing; mountain peak with empty lower foreground.
+- "center" — subject fills the frame OR is centered AND the headline is short enough to land cleanly mid-image. Use sparingly — usually one of "top" or "bottom" wins.
+- For the CTA slide, ALWAYS use "top" so the gold pill button doesn't collide with text."""
 
 
 def _strip_code_fences(text: str) -> str:
