@@ -48,12 +48,19 @@ def from_url(url: str, timeout: int = 60) -> Image.Image:
 
 
 def from_pollinations(prompt: str, seed: int = 42) -> Image.Image:
-    """Pollinations.ai — free, no key. Flux model, returns 1080x1920 directly."""
-    # API URL accepts long prompts but be conservative
+    """Pollinations.ai — free, no key. Flux model.
+
+    Asking Flux for 1080x1920 directly triggers server-side stretching that
+    distorts subjects vertically (Flux is trained on ~1MP native sizes).
+    We request 832x1472 (a Flux-friendly 9:16 size) and Lanczos-upscale to
+    1080x1920 in PIL, which preserves proportions.
+    """
+    # Flux-native portrait size that matches our 9:16 target ratio closely.
+    SRC_W, SRC_H = 832, 1472
     encoded = urllib.parse.quote(prompt[:1800], safe="")
     url = (
         f"https://image.pollinations.ai/prompt/{encoded}"
-        f"?width={W}&height={H}&nologo=true&model=flux&seed={seed}"
+        f"?width={SRC_W}&height={SRC_H}&nologo=true&model=flux&seed={seed}"
     )
     return from_url(url, timeout=120)
 

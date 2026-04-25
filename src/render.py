@@ -252,12 +252,14 @@ def _bump_rate(rate: str, extra_pct: int) -> str:
 
 
 async def _synth_all(slides: list[dict], voice_dir: Path, rate: str) -> list[Path]:
+    """Same TTS rate for every slide. The hook punch comes from the visual
+    treatment + the words themselves, not from speeding up speech (which
+    sounds rushed on top of an already-tight base rate).
+    """
     paths = []
-    hook_rate = _bump_rate(rate, 8)  # extra urgency on the first line
     for i, slide in enumerate(slides):
         out = voice_dir / f"{i + 1:02d}.mp3"
-        slide_rate = hook_rate if i == 0 else rate
-        await _synth_one(slide["voiceover"], out, slide_rate)
+        await _synth_one(slide["voiceover"], out, rate)
         paths.append(out)
     return paths
 
