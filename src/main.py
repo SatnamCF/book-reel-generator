@@ -43,6 +43,7 @@ def main() -> int:
         content = llm_script.generate(args.book, args.duration)
         print(f"  -> {len(content['slides'])} slides, by {content.get('author', '?')}")
         if args.save_content:
+            args.save_content.parent.mkdir(parents=True, exist_ok=True)
             args.save_content.write_text(json.dumps(content, indent=2), encoding="utf-8")
             print(f"  -> saved JSON to {args.save_content}")
 
