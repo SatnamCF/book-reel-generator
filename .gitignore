@@ -1,0 +1,26 @@
+# Generated outputs
+out/
+*.mp4
+*.mp3
+*.png
+
+# Allow test fixtures
+!tests/**/*.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+.env.local
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

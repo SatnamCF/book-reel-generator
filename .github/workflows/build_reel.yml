@@ -1,0 +1,89 @@
+name: Generate Book Reel
+
+on:
+  workflow_dispatch:
+    inputs:
+      book:
+        description: "Book title (e.g. 'Atomic Habits')"
+        required: true
+        type: string
+      duration:
+        description: "Target video length in seconds"
+        required: true
+        default: "30"
+        type: choice
+        options:
+          - "15"
+          - "30"
+          - "45"
+          - "60"
+          - "90"
+
+permissions:
+  contents: write   # needed to create a Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install system fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fonts-liberation fonts-dejavu-core ffmpeg
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: Generate reel
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python -m src.main "${{ github.event.inputs.book }}" \
+            --duration ${{ github.event.inputs.duration }} \
+            --output "out/reel.mp4" \
+            --save-content "out/script.json"
+
+      - name: Compute slug + timestamp
+        id: meta
+        run: |
+          BOOK="${{ github.event.inputs.book }}"
+          SLUG=$(echo "$BOOK" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '_' | sed 's/^_//;s/_$//')
+          STAMP=$(date -u +%Y%m%d-%H%M%S)
+          echo "slug=$SLUG" >> $GITHUB_OUTPUT
+          echo "stamp=$STAMP" >> $GITHUB_OUTPUT
+          echo "tag=reel-${SLUG}-${{ github.event.inputs.duration }}s-${STAMP}" >> $GITHUB_OUTPUT
+          # Rename for clarity
+          mv out/reel.mp4 "out/${SLUG}_${{ github.event.inputs.duration }}s.mp4"
+
+      - name: Upload MP4 as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: reel-${{ steps.meta.outputs.slug }}-${{ github.event.inputs.duration }}s
+          path: |
+            out/*.mp4
+            out/script.json
+          retention-days: 30
+
+      - name: Publish as GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: "${{ github.event.inputs.book }} (${{ github.event.inputs.duration }}s)"
+          body: |
+            Generated reel for **${{ github.event.inputs.book }}** at ${{ github.event.inputs.duration }}s.
+            - Triggered by @${{ github.actor }}
+            - Run: ${{ github.run_id }}
+          files: |
+            out/*.mp4
+            out/script.json
