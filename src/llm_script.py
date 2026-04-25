@@ -56,8 +56,9 @@ Image prompt requirements (MANDATORY):
 - LITERAL subject from the headline must appear in the photo.
 - ONE coherent scene (not a collage unless headline is a contrast — then a split-screen).
 - Specify lighting, time of day, location, framing.
-- Always end with "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text, no captions, no signage."
+- Always end with this EXACT tail: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, sharp focus, professional photography, no text, no captions, no signage."
 - Vary scenes across slides — never repeat a setting or pose.
+- For human subjects, specify framing carefully: prefer "medium shot from waist up" or "wide shot showing full body in natural proportion" — avoid prompts that force unusual poses (head-to-toe action shots, jumping, etc.) which cause Flux to produce elongated figures.
 
 Output ONLY valid JSON. No prose, no markdown fences."""
 

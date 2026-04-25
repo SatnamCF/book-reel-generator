@@ -51,14 +51,18 @@ def from_pollinations(prompt: str, seed: int = 42) -> Image.Image:
     """Pollinations.ai — free, no key. Flux model.
 
     Empirical: Pollinations CAPS image output around 1024px on the long edge
-    regardless of requested width/height. Asking for 1080x1920 returns
-    576x1024; asking for off-ratio sizes (e.g. 832x1472) returns deformed
-    near-square images like 577x1021.
+    regardless of requested width/height. Flux's native 9:16 portrait size
+    IS 576x1024, so we request that exactly and Lanczos-upscale to 1080x1920
+    in PIL — one clean upscale, no stretch.
 
-    Flux's native 9:16 portrait size IS 576x1024, so we request that exactly
-    and Lanczos-upscale to 1080x1920 in PIL — one clean upscale, no stretch.
+    Append "natural proportions" guards to the prompt to fight Flux's
+    tendency to elongate human figures.
     """
     SRC_W, SRC_H = 576, 1024  # exact 9:16, Flux native
+    # Belt-and-suspenders: even if Claude forgets the proportion guards,
+    # we add them here. Order matters — Flux respects late-prompt tokens.
+    if "natural" not in prompt.lower() and "anatomically" not in prompt.lower():
+        prompt = f"{prompt.rstrip('. ')}. Anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies."
     encoded = urllib.parse.quote(prompt[:1800], safe="")
     url = (
         f"https://image.pollinations.ai/prompt/{encoded}"
