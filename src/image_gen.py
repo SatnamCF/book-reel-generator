@@ -50,13 +50,15 @@ def from_url(url: str, timeout: int = 60) -> Image.Image:
 def from_pollinations(prompt: str, seed: int = 42) -> Image.Image:
     """Pollinations.ai — free, no key. Flux model.
 
-    Asking Flux for 1080x1920 directly triggers server-side stretching that
-    distorts subjects vertically (Flux is trained on ~1MP native sizes).
-    We request 832x1472 (a Flux-friendly 9:16 size) and Lanczos-upscale to
-    1080x1920 in PIL, which preserves proportions.
+    Empirical: Pollinations CAPS image output around 1024px on the long edge
+    regardless of requested width/height. Asking for 1080x1920 returns
+    576x1024; asking for off-ratio sizes (e.g. 832x1472) returns deformed
+    near-square images like 577x1021.
+
+    Flux's native 9:16 portrait size IS 576x1024, so we request that exactly
+    and Lanczos-upscale to 1080x1920 in PIL — one clean upscale, no stretch.
     """
-    # Flux-native portrait size that matches our 9:16 target ratio closely.
-    SRC_W, SRC_H = 832, 1472
+    SRC_W, SRC_H = 576, 1024  # exact 9:16, Flux native
     encoded = urllib.parse.quote(prompt[:1800], safe="")
     url = (
         f"https://image.pollinations.ai/prompt/{encoded}"

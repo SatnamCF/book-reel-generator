@@ -35,18 +35,29 @@ The hook headline AND voiceover must be one of these patterns:
 - A direct callout ("Still trading time for money? Read this.")
 Avoid generic opener words like "Here's", "Today", "In this video". Open mid-thought, with attitude.
 
-CRITICAL: image_prompt must visually match the headline.
-- Headline "Two dads. Two money mindsets." → image_prompt: "Split-screen cinematic photo of two middle-aged men: LEFT is exhausted in a fluorescent-lit beige cubicle drowning in paperwork; RIGHT is relaxed on a sunny patio with a tablet showing investment charts. Vertical 9:16, photorealistic."
-- Headline "Stop trading time for money." → image_prompt: "Cinematic photo of a young man head-in-hands hunched over a laptop late at night, harsh blue screen glow on his tired face, crumpled receipts and a calculator scattered on a dark desk. Vertical 9:16, photorealistic."
-- Headline "Build assets that pay you while you sleep." → image_prompt: "Cinematic photo of a relaxed man in linen on a luxury rooftop terrace at sunset, holding a tablet, golden-hour city skyline behind him with subtle floating dollar bills and a green upward trending arrow graphic. Vertical 9:16, photorealistic."
+CRITICAL: image_prompt must literally depict the headline.
 
-Image prompt requirements:
-- Always cinematic, photorealistic, hyperreal, professional photography.
-- ONE specific scene with a clear human subject when relevant.
-- Specify lighting, mood, time of day, location.
-- Vertical 9:16 framing.
-- NO text in the image (text is overlaid in post — explicitly say "no text, no captions, no signage").
-- Vary scenes across slides — never repeat a setting.
+Image-prompt construction recipe (use this every time):
+1. Identify the LITERAL subject + emotion in the headline.
+2. Build a single cinematic scene that someone glancing at the photo would
+   immediately match to the headline — no abstract concepts, no random
+   stock-photo vibes.
+3. Specify: subject (who/what), action/pose, location, lighting, time of day,
+   camera framing. Concrete > abstract every time.
+4. End with: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text, no captions, no signage."
+
+Examples (headline → image_prompt):
+- "Two dads. Two money mindsets." → "Split-screen cinematic photo. LEFT: exhausted middle-aged man in a fluorescent-lit beige cubicle, head in hands, surrounded by stacked paperwork. RIGHT: same age man relaxed on a sunny patio, tablet showing rising investment charts, palm tree shadow. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+- "Stop trading time for money." → "Cinematic photo of a young man head-in-hands hunched over a laptop at 2am, harsh blue screen glow on his tired face, crumpled receipts and an analog clock at 2:00 on a dark cluttered desk. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+- "Build assets that pay you while you sleep." → "Cinematic photo of a relaxed man in linen sleeping on a hammock at golden hour, smartphone on his chest showing a green stock chart, lush tropical resort and ocean behind him. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+- "You're not special. And that's liberating." → "Cinematic aerial photo of a single tiny human silhouette walking across an enormous empty white salt flat at sunrise, casting a long shadow, scale dwarfed by the vast emptiness. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+
+Image prompt requirements (MANDATORY):
+- LITERAL subject from the headline must appear in the photo.
+- ONE coherent scene (not a collage unless headline is a contrast — then a split-screen).
+- Specify lighting, time of day, location, framing.
+- Always end with "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text, no captions, no signage."
+- Vary scenes across slides — never repeat a setting or pose.
 
 Output ONLY valid JSON. No prose, no markdown fences."""
 
