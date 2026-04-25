@@ -1,8 +1,10 @@
-"""Generate slide background images via Google Gemini Imagen.
+"""Generate slide background images via Google Gemini.
 
-Returns a 1080x1920 PIL.Image for each prompt. Falls back to a URL fetch when
-a slide carries `image_url` (used by the test fixtures to avoid spending API
-calls during local testing).
+Uses `gemini-2.5-flash-image` (Nano Banana) — Google's multimodal image-gen
+model, available on the FREE tier. (Imagen models require billing.)
+
+Returns a 1080x1920 PIL.Image. Falls back to a URL fetch when a slide carries
+`image_url` (used by test fixtures so the renderer runs without an API key).
 """
 from __future__ import annotations
 
@@ -14,9 +16,8 @@ from PIL import Image
 
 W, H = 1080, 1920
 
-# Imagen 4 (fast variant — cheaper, ~3-5s per image, good quality at 9:16).
-# Override via env if you want the higher-quality slower variant.
-DEFAULT_MODEL = "imagen-4.0-fast-generate-001"
+# Free-tier image model. Set REEL_IMAGE_MODEL to override.
+DEFAULT_MODEL = "gemini-2.5-flash-image"
 
 
 def _fit_cover(img: Image.Image, w: int = W, h: int = H) -> Image.Image:
@@ -25,7 +26,6 @@ def _fit_cover(img: Image.Image, w: int = W, h: int = H) -> Image.Image:
     src_ratio = src_w / src_h
     dst_ratio = w / h
     if src_ratio > dst_ratio:
-        # source is wider — fit height, crop width
         new_h = h
         new_w = int(new_h * src_ratio)
     else:
@@ -45,7 +45,7 @@ def from_url(url: str) -> Image.Image:
 
 
 def from_gemini(prompt: str, model: str | None = None) -> Image.Image:
-    """Call Gemini Imagen and return a 1080x1920 PIL.Image."""
+    """Call Gemini multimodal image gen and return a 1080x1920 PIL.Image."""
     api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise RuntimeError("GOOGLE_API_KEY (or GEMINI_API_KEY) is not set")
@@ -54,24 +54,26 @@ def from_gemini(prompt: str, model: str | None = None) -> Image.Image:
     from google.genai import types
 
     client = genai.Client(api_key=api_key)
-    response = client.models.generate_images(
-        model=model or os.environ.get("REEL_IMAGE_MODEL", DEFAULT_MODEL),
-        prompt=prompt,
-        config=types.GenerateImagesConfig(
-            number_of_images=1,
-            aspect_ratio="9:16",
-            person_generation="allow_adult",
-        ),
+    # gemini-2.5-flash-image doesn't accept aspect_ratio param — bake the hint
+    # into the prompt and crop afterward to enforce 9:16.
+    framed = (
+        f"{prompt}\n\n"
+        "Composition: tall vertical portrait orientation, 9:16 aspect ratio. "
+        "Frame the subject so the important content sits in the central vertical band."
     )
-    if not response.generated_images:
-        raise RuntimeError(f"Imagen returned no images for prompt: {prompt[:120]}")
-
-    pil = response.generated_images[0].image._pil_image  # google-genai exposes the PIL underneath
-    if pil is None:
-        # Fallback path — read bytes and decode
-        img_bytes = response.generated_images[0].image.image_bytes
-        pil = Image.open(io.BytesIO(img_bytes)).convert("RGB")
-    return _fit_cover(pil.convert("RGB"))
+    response = client.models.generate_content(
+        model=model or os.environ.get("REEL_IMAGE_MODEL", DEFAULT_MODEL),
+        contents=framed,
+        config=types.GenerateContentConfig(response_modalities=["IMAGE"]),
+    )
+    for candidate in response.candidates or []:
+        if not candidate.content or not candidate.content.parts:
+            continue
+        for part in candidate.content.parts:
+            if part.inline_data and part.inline_data.data:
+                pil = Image.open(io.BytesIO(part.inline_data.data)).convert("RGB")
+                return _fit_cover(pil)
+    raise RuntimeError(f"Gemini returned no image for prompt: {prompt[:120]}")
 
 
 def generate_for_slide(slide: dict) -> Image.Image:

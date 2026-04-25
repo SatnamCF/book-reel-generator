@@ -9,7 +9,7 @@ Each slide is a cinematic AI-generated photo with a bold white headline overlaid
 1. You trigger the workflow from the **Actions** tab with a book title and a duration (15 / 30 / 45 / 60 / 90 seconds).
 2. GitHub Actions runs Python that:
    - Calls **Claude (Anthropic API)** to generate a slide-by-slide script — headline + image prompt + voiceover line per slide.
-   - Calls **Gemini Imagen (Google API)** to turn each image prompt into a photorealistic vertical 9:16 photo.
+   - Calls **Gemini (Google's `gemini-2.5-flash-image` model)** to turn each image prompt into a photorealistic 9:16 photo. Free tier eligible.
    - Overlays the bold white headline at the top of each photo with a dark legibility gradient.
    - Synthesizes the voiceover with `edge-tts` (Microsoft Neural voices, free, no key).
    - Stitches everything into an MP4 with a slow Ken Burns zoom (moviepy + ffmpeg).
@@ -70,7 +70,7 @@ python -m src.main "Atomic Habits" --duration 30 \
 ## Customizing
 
 - **Voice:** edit `VOICE` in `src/render.py` (e.g. `en-US-JennyNeural`, `en-US-AndrewNeural`)
-- **Image model:** set env `REEL_IMAGE_MODEL` to `imagen-4.0-generate-001` for higher quality (slower, costlier) instead of the fast variant.
+- **Image model:** set env `REEL_IMAGE_MODEL` to `imagen-4.0-generate-001` (requires Google billing enabled) for higher fidelity than `gemini-2.5-flash-image`.
 - **LLM model:** set env `REEL_MODEL` to e.g. `claude-opus-4-7` for richer scripts.
 - **Headline font/sizing:** tweak `_draw_headline` in `src/render.py`.
 
@@ -80,7 +80,7 @@ python -m src.main "Atomic Habits" --duration 30 \
 |---|---|
 | GitHub Actions | Free (public repo) or 2000 free min/month (private) |
 | Anthropic (Claude script) | ~$0.005-0.02 per reel |
-| Google Gemini Imagen (7 photos) | Free (free tier ~100 imgs/day) or ~$0.20 per reel paid |
+| Google Gemini (gemini-2.5-flash-image) | Free tier covers ~100 images/day |
 | edge-tts voiceover | Free |
 | **Total** | **~$0.02 per reel** if you stay on Gemini's free tier |
 
