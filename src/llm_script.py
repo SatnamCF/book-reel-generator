@@ -55,9 +55,9 @@ Examples (headline → image_prompt):
 Image prompt requirements (MANDATORY):
 - LITERAL subject from the headline must appear in the photo.
 - ONE coherent scene (not a collage unless headline is a contrast — then a split-screen).
-- Specify lighting, time of day, location, framing.
+- Specify lighting, time of day, location, framing — and these must align with the book's visual_theme.
 - Always end with this EXACT tail: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, sharp focus, professional photography, no text, no captions, no signage."
-- Vary scenes across slides — never repeat a setting or pose.
+- Vary the SCENE across slides (different locations/subjects), but keep the AESTHETIC consistent (same lighting palette, same photographic style, same mood from the visual_theme).
 - For human subjects, specify framing carefully: prefer "medium shot from waist up" or "wide shot showing full body in natural proportion" — avoid prompts that force unusual poses (head-to-toe action shots, jumping, etc.) which cause Flux to produce elongated figures.
 
 Output ONLY valid JSON. No prose, no markdown fences."""
@@ -69,16 +69,31 @@ Target video duration: {duration} seconds.
 Number of slides: exactly {n_slides}.
 Total voiceover words across all slides: ~{total_words} (split roughly evenly).
 
+STEP 1 (think before writing slides): decide the BOOK'S VISUAL THEME. This is
+the cohesive aesthetic that all 7 photos in this reel must share. Think like
+a creative director picking a mood board.
+
+Examples of good visual_theme strings:
+- Rich Dad Poor Dad → "Luxury vs hustle: golden-hour business photography. Marble lobbies, rooftop terraces, suits, sports cars contrasted with cluttered cubicles, late-night laptops, drained faces. Warm gold highlights, deep navy shadows."
+- Atomic Habits → "Modern minimalist productivity. Soft natural daylight, scandinavian/japandi interiors, clean wooden desks, single subjects in calm focused moments. Muted earth tones, lots of negative space."
+- The Subtle Art of Not Giving a F*ck → "Raw urban realism. Candid street photography, gritty city scenes, honest unstaged moments, neon-and-rain night vibes. Slightly desaturated, high contrast, photojournalism feel."
+- Atomic Awakening / Power of Now → "Spiritual stillness. Misty mountain dawns, lone figures in vast landscapes, soft ethereal light, monk-like solitude. Muted blues and warm whites."
+- Cant Hurt Me / Relentless → "Dark intensity. Athletes training in dim gyms, sweat, single dramatic spotlights, rain, predawn workouts, gritted teeth. Deep blacks, harsh rim lighting."
+
+STEP 2: for every slide's image_prompt, weave in the visual_theme palette,
+lighting, and aesthetic alongside the literal subject from the headline.
+
 Return JSON:
 
 {{
   "book": "<full title>",
   "author": "<author name>",
+  "visual_theme": "<one-paragraph mood-board description that all photos share>",
   "slides": [
     {{
       "type": "hook" | "summary" | "cta",
       "headline": "<5-10 words, bold quotable text shown on the slide>",
-      "image_prompt": "<detailed cinematic photorealistic image description>",
+      "image_prompt": "<scene literal to headline, styled per visual_theme>",
       "text_position": "top" | "center" | "bottom",
       "voiceover": "<8-12 words, conversational narration>"
     }}
