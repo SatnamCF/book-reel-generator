@@ -17,7 +17,7 @@ import os
 import urllib.parse
 import urllib.request
 
-from PIL import Image
+from PIL import Image, ImageFilter
 
 W, H = 1080, 1920
 
@@ -44,7 +44,15 @@ def from_url(url: str, timeout: int = 60) -> Image.Image:
     req = urllib.request.Request(url, headers={"User-Agent": "book-reel-generator/1.0"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         data = r.read()
-    return _fit_cover(Image.open(io.BytesIO(data)).convert("RGB"))
+    raw = Image.open(io.BytesIO(data)).convert("RGB")
+    # Surface the actual returned dimensions so CI logs reveal any provider
+    # weirdness (vs. the WxH we requested).
+    print(f"    [image_gen] downloaded {raw.size} from {url[:80]}...")
+    fitted = _fit_cover(raw)
+    # Recover sharpness lost in the upscale (576x1024 -> 1080x1920 is 1.875x)
+    if raw.size != fitted.size:
+        fitted = fitted.filter(ImageFilter.UnsharpMask(radius=2.0, percent=80, threshold=2))
+    return fitted
 
 
 def from_pollinations(prompt: str, seed: int = 42) -> Image.Image:
@@ -64,9 +72,11 @@ def from_pollinations(prompt: str, seed: int = 42) -> Image.Image:
     if "natural" not in prompt.lower() and "anatomically" not in prompt.lower():
         prompt = f"{prompt.rstrip('. ')}. Anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies."
     encoded = urllib.parse.quote(prompt[:1800], safe="")
+    # nofeed bypasses Pollinations' public feed (and seems to dodge stale cached
+    # responses that sometimes return wrong sizes).
     url = (
         f"https://image.pollinations.ai/prompt/{encoded}"
-        f"?width={SRC_W}&height={SRC_H}&nologo=true&model=flux&seed={seed}"
+        f"?width={SRC_W}&height={SRC_H}&nologo=true&nofeed=true&model=flux&seed={seed}"
     )
     return from_url(url, timeout=120)
 
