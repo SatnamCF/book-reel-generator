@@ -58,7 +58,17 @@ Image prompt requirements (MANDATORY):
 - Specify lighting, time of day, location, framing — and these must align with the book's visual_theme.
 - Always end with this EXACT tail: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, sharp focus, professional photography, no text, no captions, no signage."
 - Vary the SCENE across slides (different locations/subjects), but keep the AESTHETIC consistent (same lighting palette, same photographic style, same mood from the visual_theme).
-- For human subjects, specify framing carefully: prefer "medium shot from waist up" or "wide shot showing full body in natural proportion" — avoid prompts that force unusual poses (head-to-toe action shots, jumping, etc.) which cause Flux to produce elongated figures.
+- For human subjects, framing must be SAFE for AI image generation. Strict rules:
+  * ALWAYS use one of: "medium shot from waist up", "chest-up portrait", "head and shoulders", "seated at a desk", "leaning on a counter", "standing facing camera in natural pose".
+  * NEVER request these poses — they reliably trigger Flux/SDXL to elongate necks, limbs, or torsos:
+    - "looking up at [sky/lights/ceiling]" (elongates neck)
+    - "head tilted back" (elongates neck)
+    - "reaching up" / "arms raised overhead" (elongates arms)
+    - "standing on tiptoe" / "jumping" / "mid-air" (elongates legs)
+    - "stretching" / "yoga pose" / "running" (any extended pose)
+    - "full body shot" of a standing person seen head-to-toe (always elongates)
+  * If the headline calls for a dynamic feel, convey it via LIGHTING and EXPRESSION, not pose. E.g., "intense focused expression, sweat on brow, dramatic rim light" instead of "athlete jumping for the rim".
+  * Subjects should look NATURAL and STILL — like a portrait photographer's shot, not an action photographer's.
 
 Output ONLY valid JSON. No prose, no markdown fences."""
 

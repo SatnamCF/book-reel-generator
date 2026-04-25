@@ -1,0 +1,35 @@
+{
+  "book": "Relentless",
+  "author": "Tim S. Grover",
+  "visual_theme": "Dark intensity. Athletes training in dim gyms, sweat, single dramatic spotlights, predawn workouts, gritted teeth. Deep blacks, harsh rim lighting, monochromatic with selective gold accents.",
+  "slides": [
+    {
+      "type": "hook",
+      "headline": "Most people quit when winning starts.",
+      "image_prompt": "Cinematic photo of a single athlete in a dim empty gym at predawn, kneeling on the floor catching breath, sweat dripping, single overhead spotlight, deep blacks all around, gold rim light from a high window. Medium wide shot showing the athlete from waist up. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "top",
+      "voiceover": "Most people quit at the exact moment winning begins."
+    },
+    {
+      "type": "summary",
+      "headline": "Champions don't wait to feel ready.",
+      "image_prompt": "Cinematic photo of a male boxer in dark training gear standing alone in a worn boxing ring under a single hanging bulb, fists wrapped in tape, intense focused expression, deep shadows, gritty industrial gym in background. Medium shot from chest up showing natural body proportions. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "top",
+      "voiceover": "Champions don't wait until they feel ready. They start anyway."
+    },
+    {
+      "type": "summary",
+      "headline": "Pressure is a privilege only legends earn.",
+      "image_prompt": "Cinematic photo of a basketball player at a free throw line under stadium spotlights at night, ball in hands, eyes closed in focus, sweat on brow, dark empty stadium seats behind him out of focus, harsh rim lighting from above creating gold highlights on his shoulders. Wide shot showing full natural body proportions. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "center",
+      "voiceover": "Pressure is a privilege that only legends earn through years of work."
+    },
+    {
+      "type": "cta",
+      "headline": "Read Relentless. Become unstoppable.",
+      "image_prompt": "Cinematic photo of the book Relentless lying on a worn dark wooden gym bench, a coiled jump rope and a stopwatch beside it, single warm overhead lamp casting golden light, deep shadows around the edges, locker room in soft background blur. Top-down medium shot. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "top",
+      "voiceover": "Read Relentless by Tim Grover. It will change how you compete."
+    }
+  ]
+}
