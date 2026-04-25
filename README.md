@@ -2,14 +2,14 @@
 
 Generate Instagram Reel summaries (1080×1920 MP4 with voiceover and **photorealistic AI backgrounds**) for any non-fiction book. Runs entirely on GitHub Actions — no server, no hosting fees.
 
-Each slide is a cinematic AI-generated photo with a bold white headline overlaid, produced in seconds by chaining Claude (script + image prompts) with Gemini Imagen (the actual photos).
+Each slide is a cinematic AI-generated photo with a bold white headline overlaid, produced in seconds by chaining Claude (script + image prompts) with Pollinations.ai's free Flux model (the actual photos). Total cost stays around 1-2¢ per reel — only Claude tokens.
 
 ## How it works
 
 1. You trigger the workflow from the **Actions** tab with a book title and a duration (15 / 30 / 45 / 60 / 90 seconds).
 2. GitHub Actions runs Python that:
    - Calls **Claude (Anthropic API)** to generate a slide-by-slide script — headline + image prompt + voiceover line per slide.
-   - Calls **Gemini (Google's `gemini-2.5-flash-image` model)** to turn each image prompt into a photorealistic 9:16 photo. Free tier eligible.
+   - Calls **Pollinations.ai (Flux)** to turn each image prompt into a photorealistic 9:16 photo. Completely free, no API key. (Optional: switch to Gemini's image model with `IMAGE_PROVIDER=gemini` if you have Google billing enabled.)
    - Overlays the bold white headline at the top of each photo with a dark legibility gradient.
    - Synthesizes the voiceover with `edge-tts` (Microsoft Neural voices, free, no key).
    - Stitches everything into an MP4 with a slow Ken Burns zoom (moviepy + ffmpeg).
@@ -22,7 +22,7 @@ Total runtime: ~3-5 minutes per video.
 1. **Fork or push this repo to your GitHub account.**
 2. Go to **Settings → Secrets and variables → Actions → New repository secret** and add:
    - **`ANTHROPIC_API_KEY`** — Claude API key from <https://console.anthropic.com/>
-   - **`GOOGLE_API_KEY`** — Gemini API key from <https://aistudio.google.com/apikey> (free tier covers ~100 images/day)
+   - **`GOOGLE_API_KEY`** *(optional)* — only if you flip the workflow to `IMAGE_PROVIDER=gemini`. Default is Pollinations which needs no key.
 3. Done.
 
 ## Generating a reel
@@ -80,7 +80,7 @@ python -m src.main "Atomic Habits" --duration 30 \
 |---|---|
 | GitHub Actions | Free (public repo) or 2000 free min/month (private) |
 | Anthropic (Claude script) | ~$0.005-0.02 per reel |
-| Google Gemini (gemini-2.5-flash-image) | Free tier covers ~100 images/day |
+| Pollinations.ai (Flux, default image provider) | Free, no key |
 | edge-tts voiceover | Free |
 | **Total** | **~$0.02 per reel** if you stay on Gemini's free tier |
 

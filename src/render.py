@@ -146,8 +146,8 @@ def _draw_cta_button(img: Image.Image) -> Image.Image:
     return img
 
 
-def render_slide(slide: dict) -> Image.Image:
-    photo = image_gen.generate_for_slide(slide)
+def render_slide(slide: dict, slide_index: int = 0) -> Image.Image:
+    photo = image_gen.generate_for_slide(slide, slide_index=slide_index)
     # Text band is drawn inside _draw_headline (sized to the wrapped text).
     img = _draw_headline(photo, slide.get("headline", ""))
     if slide.get("type") == "cta":
@@ -247,7 +247,7 @@ def render_all(content: dict, target_duration: int, work_dir: Path, out_path: Pa
     for i, slide in enumerate(slides):
         path = slides_dir / f"{i + 1:02d}.png"
         print(f"  Rendering slide {i + 1}/{len(slides)}: {slide.get('headline', '')[:60]}")
-        render_slide(slide).save(path, "PNG", optimize=True)
+        render_slide(slide, slide_index=i).save(path, "PNG", optimize=True)
         slide_paths.append(path)
 
     voice_paths = synth_voiceovers(slides, voice_dir, rate=rate)
