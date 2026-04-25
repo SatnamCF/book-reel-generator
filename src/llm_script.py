@@ -1,6 +1,10 @@
 """Generate slide content for a book reel using Claude.
 
-Returns a strict JSON structure that downstream renderers consume.
+Output schema (per slide):
+    type:          "hook" | "summary" | "cta"
+    headline:      bold white text shown overlaid on the photo (5-10 words)
+    image_prompt:  detailed prompt for Gemini Imagen (cinematic, photorealistic, 9:16)
+    voiceover:     conversational narrator line (8-12 words)
 """
 from __future__ import annotations
 
@@ -8,77 +12,67 @@ import json
 import math
 import os
 import re
-from dataclasses import dataclass
 
 import anthropic
 
-MODEL = "claude-sonnet-4-5"  # cheap + capable; override via env if you want Opus
-WORDS_PER_SECOND = 2.3  # ~140 wpm — engaging-reel pace
+MODEL = "claude-sonnet-4-5"
+WORDS_PER_SECOND = 2.3
 
 
-@dataclass
-class SlideJob:
-    book: str
-    duration_seconds: int
+SYSTEM_PROMPT = """You write punchy Instagram Reel scripts that summarize non-fiction books.
 
+You return THREE things per slide:
+1. A short on-screen headline (5-10 words, bold and quotable).
+2. A detailed photorealistic image prompt for an AI image generator. The image MUST literally depict the metaphor or scene of the headline — when a viewer looks at the photo and reads the headline, they should immediately feel the connection.
+3. A spoken voiceover line (8-12 words, conversational).
 
-SYSTEM_PROMPT = """You write punchy, viral-style Instagram Reel scripts that summarize non-fiction books.
+CRITICAL: image_prompt must visually match the headline.
+- Headline "Two dads. Two money mindsets." → image_prompt: "Split-screen cinematic photo of two middle-aged men: LEFT is exhausted in a fluorescent-lit beige cubicle drowning in paperwork; RIGHT is relaxed on a sunny patio with a tablet showing investment charts. Vertical 9:16, photorealistic."
+- Headline "Stop trading time for money." → image_prompt: "Cinematic photo of a young man head-in-hands hunched over a laptop late at night, harsh blue screen glow on his tired face, crumpled receipts and a calculator scattered on a dark desk. Vertical 9:16, photorealistic."
+- Headline "Build assets that pay you while you sleep." → image_prompt: "Cinematic photo of a relaxed man in linen on a luxury rooftop terrace at sunset, holding a tablet, golden-hour city skyline behind him with subtle floating dollar bills and a green upward trending arrow graphic. Vertical 9:16, photorealistic."
 
-Style:
-- Short, bold, contrast-driven copy. Think Rich Dad Poor Dad style.
-- Each slide has a strong takeaway, not a paragraph.
-- Hook first, payoff middle, CTA last.
-- Voiceover is conversational and ~8-12 words per slide.
-- Body text on slide REINFORCES or CONTRASTS the voiceover — it does NOT repeat it.
-- Use ALL-CAPS sparingly for the punch words.
+Image prompt requirements:
+- Always cinematic, photorealistic, hyperreal, professional photography.
+- ONE specific scene with a clear human subject when relevant.
+- Specify lighting, mood, time of day, location.
+- Vertical 9:16 framing.
+- NO text in the image (text is overlaid in post — explicitly say "no text, no captions, no signage").
+- Vary scenes across slides — never repeat a setting.
 
-Output ONLY valid JSON matching the requested schema. No prose, no markdown fences."""
+Output ONLY valid JSON. No prose, no markdown fences."""
 
 
 def _user_prompt(book: str, duration: int, n_slides: int, total_words: int) -> str:
-    return f"""Create an Instagram Reel script for the book: "{book}"
-
+    return f"""Book: "{book}"
 Target video duration: {duration} seconds.
 Number of slides: exactly {n_slides}.
 Total voiceover words across all slides: ~{total_words} (split roughly evenly).
 
-Schema (return JSON, nothing else):
+Return JSON:
 
 {{
-  "book": "<full book title>",
+  "book": "<full title>",
   "author": "<author name>",
   "slides": [
     {{
       "type": "hook" | "summary" | "cta",
-      "voiceover": "<8-12 words, conversational, what the narrator says>",
-      "body_lines": [
-        {{"text": "<short line>", "size": "small" | "medium" | "large" | "huge", "color": "white" | "muted" | "gold" | "red" | "green"}}
-      ],
-      "theme": "hero_word" | "split" | "rising" | "rays" | "rings" | "silhouette",
-      "theme_word": "<single character/symbol/short word for hero_word theme; otherwise empty string>",
-      "accent_color": "gold" | "red" | "green" | "blue" | "purple"
+      "headline": "<5-10 words, bold quotable text shown on the slide>",
+      "image_prompt": "<detailed cinematic photorealistic image description>",
+      "voiceover": "<8-12 words, conversational narration>"
     }}
   ]
 }}
 
 Rules:
-- Slide 1 is type "hook" — a controversial or counter-intuitive claim from the book.
-- Last slide is type "cta" — push to read the book, ends with "LINK IN BIO" or similar.
-- Middle slides are "summary" — one big idea each, with a contrast or punchline.
-- 4-8 body_lines per slide. Use empty strings ({{"text": "", ...}}) sparingly for spacing.
-- Pick "theme" based on slide content:
-  - hero_word: when there's a single dominant symbol (money "$", brain, fire). Set theme_word.
-  - split: when contrasting two ideas (rich vs poor, then vs now)
-  - rising: growth, success, wealth, momentum
-  - rays: revelation, insight, breakthrough, the "aha"
-  - rings: cycles, loops, traps, repetition
-  - silhouette: a single archetypal object/figure
-- Vary themes across slides — don't repeat the same theme back-to-back.
-- accent_color is the highlight color for the punch line on that slide."""
+- Slide 1 is "hook" — controversial/intriguing claim.
+- Last slide is "cta" — push to read the book; image_prompt should show the physical book on a desk/shelf with warm lighting.
+- Middle slides are "summary" — one big idea each, contrasting visual.
+- Headline is what's overlaid on the photo (not the same text as voiceover).
+- Image prompts should vary scene/setting across slides — don't repeat the same location.
+- All image prompts must include "vertical 9:16, photorealistic"."""
 
 
 def _strip_code_fences(text: str) -> str:
-    """Claude sometimes wraps JSON in ```json ... ``` even when told not to."""
     text = text.strip()
     if text.startswith("```"):
         text = re.sub(r"^```[a-zA-Z]*\n", "", text)
@@ -87,7 +81,6 @@ def _strip_code_fences(text: str) -> str:
 
 
 def generate(book: str, duration_seconds: int) -> dict:
-    """Call Claude and return the parsed slide JSON."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise RuntimeError("ANTHROPIC_API_KEY is not set")
@@ -108,7 +101,6 @@ def generate(book: str, duration_seconds: int) -> dict:
     if "slides" not in parsed or not isinstance(parsed["slides"], list):
         raise ValueError(f"Claude returned malformed JSON (no slides): {raw[:300]}")
     if len(parsed["slides"]) != n_slides:
-        # Trim or warn — trim is safer than failing on a 1-slide drift
         parsed["slides"] = parsed["slides"][:n_slides]
 
     return parsed

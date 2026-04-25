@@ -52,6 +52,7 @@ jobs:
       - name: Generate reel
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         run: |
           python -m src.main "${{ github.event.inputs.book }}" \
             --duration ${{ github.event.inputs.duration }} \

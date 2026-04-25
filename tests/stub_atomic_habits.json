@@ -1,105 +1,49 @@
 {
   "book": "Atomic Habits",
   "author": "James Clear",
+  "_note": "Stub fixture for offline testing. image_url uses Lorem Picsum so the renderer can run without a Gemini key. The real LLM-generated JSON has image_prompt instead.",
   "slides": [
     {
       "type": "hook",
-      "voiceover": "You don't rise to your goals. You fall to your systems.",
-      "body_lines": [
-        {"text": "You don't rise", "size": "large", "color": "white"},
-        {"text": "to your GOALS.", "size": "huge", "color": "red"},
-        {"text": "", "size": "small", "color": "white"},
-        {"text": "You fall to your", "size": "large", "color": "white"},
-        {"text": "SYSTEMS.", "size": "huge", "color": "gold"}
-      ],
-      "theme": "hero_word",
-      "theme_word": "1%",
-      "accent_color": "gold"
+      "headline": "You don't rise to your goals. You fall to your systems.",
+      "image_url": "https://picsum.photos/seed/atomic_1/1080/1920",
+      "voiceover": "You don't rise to your goals. You fall to your systems."
     },
     {
       "type": "summary",
-      "voiceover": "Tiny habits compound. One percent better every day equals 37x in a year.",
-      "body_lines": [
-        {"text": "1% better daily", "size": "large", "color": "white"},
-        {"text": "=", "size": "huge", "color": "gold"},
-        {"text": "37x BETTER", "size": "huge", "color": "green"},
-        {"text": "in a year.", "size": "medium", "color": "muted"}
-      ],
-      "theme": "rising",
-      "theme_word": "",
-      "accent_color": "green"
+      "headline": "1% better daily = 37x in a year",
+      "image_url": "https://picsum.photos/seed/atomic_2/1080/1920",
+      "voiceover": "Tiny habits compound. One percent better daily equals thirty-seven times in a year."
     },
     {
       "type": "summary",
-      "voiceover": "Habits stack into identity. Don't chase outcomes — chase who you become.",
-      "body_lines": [
-        {"text": "Don't chase", "size": "large", "color": "muted"},
-        {"text": "OUTCOMES.", "size": "huge", "color": "red"},
-        {"text": "", "size": "small", "color": "white"},
-        {"text": "Chase who you", "size": "large", "color": "white"},
-        {"text": "BECOME.", "size": "huge", "color": "gold"}
-      ],
-      "theme": "split",
-      "theme_word": "",
-      "accent_color": "purple"
+      "headline": "Don't chase outcomes. Chase who you become.",
+      "image_url": "https://picsum.photos/seed/atomic_3/1080/1920",
+      "voiceover": "Habits stack into identity. Don't chase outcomes - chase who you become."
     },
     {
       "type": "summary",
-      "voiceover": "Make it obvious. Make it easy. Make it satisfying. The four laws.",
-      "body_lines": [
-        {"text": "The Four Laws:", "size": "medium", "color": "muted"},
-        {"text": "OBVIOUS", "size": "large", "color": "gold"},
-        {"text": "ATTRACTIVE", "size": "large", "color": "gold"},
-        {"text": "EASY", "size": "large", "color": "gold"},
-        {"text": "SATISFYING", "size": "large", "color": "gold"}
-      ],
-      "theme": "rays",
-      "theme_word": "",
-      "accent_color": "gold"
+      "headline": "Make it obvious. Easy. Attractive. Satisfying.",
+      "image_url": "https://picsum.photos/seed/atomic_4/1080/1920",
+      "voiceover": "Make it obvious. Make it easy. Make it satisfying. Four laws."
     },
     {
       "type": "summary",
-      "voiceover": "Environment beats willpower. Design the room — not the discipline.",
-      "body_lines": [
-        {"text": "Willpower fails.", "size": "large", "color": "red"},
-        {"text": "Environment WINS.", "size": "huge", "color": "gold"},
-        {"text": "", "size": "small", "color": "white"},
-        {"text": "Design the room.", "size": "medium", "color": "muted"}
-      ],
-      "theme": "silhouette",
-      "theme_word": "ENV",
-      "accent_color": "blue"
+      "headline": "Willpower fails. Environment wins.",
+      "image_url": "https://picsum.photos/seed/atomic_5/1080/1920",
+      "voiceover": "Environment beats willpower. Design the room, not the discipline."
     },
     {
       "type": "summary",
-      "voiceover": "Bad habits trap you in loops. Break the cue, break the cycle.",
-      "body_lines": [
-        {"text": "Stuck in a", "size": "large", "color": "muted"},
-        {"text": "LOOP?", "size": "huge", "color": "red"},
-        {"text": "", "size": "small", "color": "white"},
-        {"text": "Break the cue.", "size": "large", "color": "gold"}
-      ],
-      "theme": "rings",
-      "theme_word": "",
-      "accent_color": "red"
+      "headline": "Break the cue. Break the loop.",
+      "image_url": "https://picsum.photos/seed/atomic_6/1080/1920",
+      "voiceover": "Bad habits trap you in loops. Break the cue, break the cycle."
     },
     {
       "type": "cta",
-      "voiceover": "Read Atomic Habits. It will change how you build everything.",
-      "body_lines": [
-        {"text": "300+ pages of this", "size": "small", "color": "muted"},
-        {"text": "in ONE book:", "size": "small", "color": "muted"},
-        {"text": "", "size": "small", "color": "white"},
-        {"text": "ATOMIC", "size": "huge", "color": "gold"},
-        {"text": "HABITS", "size": "huge", "color": "gold"},
-        {"text": "", "size": "small", "color": "white"},
-        {"text": "by James Clear", "size": "medium", "color": "white"},
-        {"text": "", "size": "small", "color": "white"},
-        {"text": "LINK IN BIO ↑", "size": "large", "color": "gold"}
-      ],
-      "theme": "rays",
-      "theme_word": "",
-      "accent_color": "gold"
+      "headline": "Read the book that rewires how you build everything.",
+      "image_url": "https://picsum.photos/seed/atomic_7/1080/1920",
+      "voiceover": "Read Atomic Habits. It will change how you build everything."
     }
   ]
 }
