@@ -1,10 +1,16 @@
-"""Render slides + voiceover + final MP4.
+"""Render slides + voiceover + final MP4 with cinematic polish.
 
-Layout per slide (matches the reference example style):
-  - Photo background fills the 1080x1920 canvas
-  - Dark gradient at the top for text legibility
-  - Bold white headline near the top, centered, wrapped
-  - On CTA slides: a gold "GRAB YOUR COPY" pill near the bottom
+Per-slide layout:
+  - Photo background fills 1080x1920
+  - Subtle warm color grade for cohesive feel across slides
+  - Cinematic top-down dark gradient (dark at top → clear at midline)
+  - Soft corner vignette
+  - Bold white headline near the top (top-anchored, multi-shadow)
+  - On CTA slides: gold button + label near bottom
+
+Video assembly:
+  - Slow Ken Burns zoom per slide (alternating in/out)
+  - 0.4s crossfade between slides
 """
 from __future__ import annotations
 
@@ -21,7 +27,8 @@ from moviepy import (
     ImageClip,
     concatenate_videoclips,
 )
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from moviepy.video.fx import CrossFadeIn
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 from . import image_gen
 
@@ -30,7 +37,11 @@ VOICE = "en-US-GuyNeural"
 FPS = 30
 HEAD_PAD = 0.05
 TAIL_PAD = 0.10
-ZOOM_RANGE = 0.06
+ZOOM_RANGE = 0.05
+CROSSFADE = 0.4
+
+
+# ----------------------------- fonts -----------------------------
 
 
 def _font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
@@ -47,32 +58,71 @@ def _font(size: int, bold: bool = True) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default()
 
 
-# ----------------------------- text overlay -----------------------------
+# ----------------------------- photo polish -----------------------------
 
 
-def _add_text_band(img: Image.Image, center_y: int, half_height: int, max_alpha: int = 180) -> Image.Image:
-    """Soft dark band centered on the text area for legibility on any photo."""
+def _color_grade(img: Image.Image) -> Image.Image:
+    """Subtle warm-highlight + slight cool-shadow grade. Adds 'pro' feel."""
+    # Slight saturation boost
+    img = ImageEnhance.Color(img).enhance(1.08)
+    # Slight contrast lift
+    img = ImageEnhance.Contrast(img).enhance(1.06)
+    # Warm cast on highlights via channel curves
+    r, g, b = img.split()
+    r = r.point(lambda v: min(255, int(v + 8 * (v / 255))))
+    b = b.point(lambda v: max(0, int(v - 4 * (v / 255))))
+    return Image.merge("RGB", (r, g, b))
+
+
+def _add_cinematic_gradient(img: Image.Image) -> Image.Image:
+    """Dark top → clear midline. Cinema title-card legibility."""
     overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-    for dy in range(-half_height, half_height + 1):
-        # Cosine-falloff: full opacity at center, fades to 0 at edges
-        falloff = 0.5 + 0.5 * math.cos((dy / half_height) * math.pi)
-        alpha = int(max_alpha * falloff)
-        y = center_y + dy
-        if 0 <= y < H:
-            od.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
-    overlay = overlay.filter(ImageFilter.GaussianBlur(20))
+    grad_h = int(H * 0.62)
+    for y in range(grad_h):
+        t = y / grad_h
+        # Ease-out: most opacity in top third, fades smoothly
+        alpha = int(210 * (1 - t) ** 1.7)
+        od.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
     return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
 
+def _add_bottom_gradient(img: Image.Image, max_alpha: int = 130) -> Image.Image:
+    """Subtle dark band at very bottom — used on CTA slide."""
+    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    od = ImageDraw.Draw(overlay)
+    grad_h = int(H * 0.32)
+    for i in range(grad_h):
+        y = H - 1 - i
+        t = i / grad_h
+        alpha = int(max_alpha * (1 - t) ** 1.5)
+        od.line([(0, y), (W, y)], fill=(0, 0, 0, alpha))
+    return Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
+
+
+def _add_vignette(img: Image.Image, strength: int = 80) -> Image.Image:
+    """Soft radial darkening of corners — frames the subject."""
+    mask = Image.new("L", (W, H), 255)
+    d = ImageDraw.Draw(mask)
+    cx, cy = W // 2, H // 2
+    max_r = math.hypot(cx, cy)
+    for i in range(40):
+        r = max_r * (1 - i / 40) * 0.95
+        alpha = 255 - int((i / 40) * strength)
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=alpha)
+    mask = mask.filter(ImageFilter.GaussianBlur(80))
+    dark = Image.new("RGB", (W, H), (0, 0, 0))
+    return Image.composite(img, dark, mask)
+
+
+# ----------------------------- text overlay -----------------------------
+
+
 def _wrap_to_fit(text: str, font_size: int, max_width: int) -> tuple[list[str], int]:
-    """Wrap text to fit max_width pixels at font_size. If still too wide, shrink size."""
-    fnt = _font(font_size, bold=True)
     d = ImageDraw.Draw(Image.new("RGB", (10, 10)))
 
     def _wraps(size: int) -> list[str] | None:
         f = _font(size, bold=True)
-        # Try wrap widths from generous to tight
         for wrap_chars in (28, 24, 22, 20, 18, 16):
             lines = textwrap.wrap(text, width=wrap_chars) or [text]
             widest = max((d.textbbox((0, 0), ln, font=f)[2] for ln in lines), default=0)
@@ -84,74 +134,66 @@ def _wrap_to_fit(text: str, font_size: int, max_width: int) -> tuple[list[str], 
         lines = _wraps(size)
         if lines:
             return lines, size
-    # Last resort
     return textwrap.wrap(text, width=18) or [text], max(font_size - 24, 48)
 
 
-def _draw_headline(img: Image.Image, text: str, center_y: int = H // 2, font_size: int = 88, max_width: int = 940) -> Image.Image:
-    """Draw headline centered both horizontally AND vertically on `center_y`.
-
-    Uses anchor='mm' so each line is anchored at its visual middle, eliminating
-    drift from font side-bearings. Adds a soft dark band behind the text for
-    legibility regardless of underlying photo.
-    """
+def _draw_headline(img: Image.Image, text: str, top_y: int = 260, font_size: int = 100, max_width: int = 920) -> Image.Image:
+    """Top-anchored bold white headline, multi-shadow for legibility."""
     if not text:
         return img
     lines, actual_size = _wrap_to_fit(text, font_size, max_width)
     fnt = _font(actual_size, bold=True)
-
-    # Compute total block height from line ascent/descent so vertical centering is exact
     ascent, descent = fnt.getmetrics()
-    line_h = ascent + descent + 16  # 16px line spacing
-    block_h = line_h * len(lines)
-
-    # Add a band slightly larger than the text block
-    img = _add_text_band(img, center_y=center_y, half_height=block_h // 2 + 60, max_alpha=180)
-
+    line_h = ascent + descent + 8
     d = ImageDraw.Draw(img)
-    # Top of first line's middle anchor
-    first_mid_y = center_y - block_h // 2 + line_h // 2
-    for i, line in enumerate(lines):
-        y = first_mid_y + i * line_h
-        # Multi-direction shadow for extra legibility
-        for dx, dy in ((4, 4), (-2, 2), (2, -2), (-2, -2)):
-            d.text((W // 2 + dx, y + dy), line, font=fnt, fill=(0, 0, 0), anchor="mm")
-        d.text((W // 2, y), line, font=fnt, fill=(255, 255, 255), anchor="mm")
+    y = top_y
+    for line in lines:
+        # Outline + drop shadow stack for cinematic punch
+        for dx, dy in ((5, 5), (3, 3), (-2, -2), (2, -2), (-2, 2)):
+            d.text((W // 2 + dx, y + dy), line, font=fnt, fill=(0, 0, 0), anchor="mt")
+        d.text((W // 2, y), line, font=fnt, fill=(255, 255, 255), anchor="mt")
+        y += line_h
     return img
 
 
-def _draw_cta_button(img: Image.Image) -> Image.Image:
-    d = ImageDraw.Draw(img)
-    # Subtle dark scrim behind the button
-    overlay = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    od = ImageDraw.Draw(overlay)
-    od.rounded_rectangle([60, H - 380, W - 60, H - 180], radius=50, fill=(0, 0, 0, 140))
-    overlay = overlay.filter(ImageFilter.GaussianBlur(8))
-    img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
+def _draw_cta(img: Image.Image, headline: str = "") -> Image.Image:
+    """Premium CTA: bigger button, label above, more contrast."""
+    img = _add_bottom_gradient(img, max_alpha=180)
     d = ImageDraw.Draw(img)
 
-    f_label = _font(44, bold=True)
-    label = "LINK IN BIO"
-    bbox = d.textbbox((0, 0), label, font=f_label)
-    lw = bbox[2] - bbox[0]
-    d.text(((W - lw) // 2, H - 350), label, font=f_label, fill=(255, 255, 255))
+    # Small label above button
+    f_label = _font(40, bold=True)
+    label = "AVAILABLE NOW"
+    d.text((W // 2, H - 380), label, font=f_label, fill=(255, 255, 255), anchor="mt")
 
-    # Gold pill button
-    d.rounded_rectangle([140, H - 290, W - 140, H - 200], radius=45, fill=(255, 215, 100))
-    f_btn = _font(46, bold=True)
-    text = "GRAB YOUR COPY →"
-    bbox = d.textbbox((0, 0), text, font=f_btn)
-    tw = bbox[2] - bbox[0]
-    d.text(((W - tw) // 2, H - 275), text, font=f_btn, fill=(40, 25, 10))
+    # Gold pill button with shadow
+    btn_top, btn_bot = H - 320, H - 220
+    # Drop shadow
+    shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    sd = ImageDraw.Draw(shadow)
+    sd.rounded_rectangle([130, btn_top + 6, W - 130, btn_bot + 6], radius=50, fill=(0, 0, 0, 140))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(10))
+    img = Image.alpha_composite(img.convert("RGBA"), shadow).convert("RGB")
+    d = ImageDraw.Draw(img)
+
+    d.rounded_rectangle([130, btn_top, W - 130, btn_bot], radius=50, fill=(255, 215, 100))
+    f_btn = _font(50, bold=True)
+    d.text((W // 2, (btn_top + btn_bot) // 2), "GRAB YOUR COPY  →", font=f_btn, fill=(40, 25, 10), anchor="mm")
+
+    # Tiny "link in bio" hint below
+    f_tiny = _font(30, bold=True)
+    d.text((W // 2, H - 170), "↑  LINK IN BIO  ↑", font=f_tiny, fill=(255, 215, 100), anchor="mt")
     return img
 
 
 def render_slide(slide: dict, slide_index: int = 0) -> Image.Image:
     photo = image_gen.generate_for_slide(slide, slide_index=slide_index)
-    # Text band is drawn inside _draw_headline (sized to the wrapped text).
-    img = _draw_headline(photo, slide.get("headline", ""))
+    img = _color_grade(photo)
+    img = _add_vignette(img, strength=80)
+    img = _add_cinematic_gradient(img)
+    img = _draw_headline(img, slide.get("headline", ""))
     if slide.get("type") == "cta":
-        img = _draw_cta_button(img)
+        img = _draw_cta(img, slide.get("headline", ""))
     return img
 
 
@@ -203,19 +245,29 @@ def _zoom_clip(image_path: Path, duration: float, zoom_in: bool) -> CompositeVid
 
 
 def assemble_video(slide_paths: list[Path], voice_paths: list[Path], out_path: Path) -> float:
-    video_clips = []
+    """Stitch with crossfades between consecutive slides."""
+    visual_clips = []
     audio_clips = []
     cursor = 0.0
 
     for i, (slide_path, voice_path) in enumerate(zip(slide_paths, voice_paths)):
         voice = AudioFileClip(str(voice_path))
-        slide_dur = HEAD_PAD + voice.duration + TAIL_PAD
-        clip = _zoom_clip(slide_path, slide_dur, zoom_in=(i % 2 == 0))
-        video_clips.append(clip)
-        audio_clips.append(voice.with_start(cursor + HEAD_PAD))
-        cursor += slide_dur
+        slide_dur = HEAD_PAD + voice.duration + TAIL_PAD + (CROSSFADE if i < len(slide_paths) - 1 else 0)
 
-    final_video = concatenate_videoclips(video_clips, method="compose")
+        clip = _zoom_clip(slide_path, slide_dur, zoom_in=(i % 2 == 0))
+        if i > 0:
+            clip = clip.with_effects([CrossFadeIn(CROSSFADE)])
+        clip = clip.with_start(cursor)
+        visual_clips.append(clip)
+
+        # Voice line starts at cursor + HEAD_PAD (after the crossfade has begun)
+        audio_clips.append(voice.with_start(cursor + HEAD_PAD + (CROSSFADE / 2 if i > 0 else 0)))
+
+        # Advance cursor accounting for the overlap
+        cursor += slide_dur - (CROSSFADE if i < len(slide_paths) - 1 else 0)
+
+    total_duration = cursor
+    final_video = CompositeVideoClip(visual_clips, size=(W, H)).with_duration(total_duration)
     final_audio = CompositeAudioClip(audio_clips)
     final_video = final_video.with_audio(final_audio)
 
@@ -228,7 +280,7 @@ def assemble_video(slide_paths: list[Path], voice_paths: list[Path], out_path: P
         preset="medium",
         threads=4,
     )
-    return cursor
+    return total_duration
 
 
 # ----------------------------- top-level -----------------------------
