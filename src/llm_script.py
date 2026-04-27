@@ -128,12 +128,21 @@ Return JSON:
     {{
       "type": "hook" | "summary" | "cta",
       "headline": "<5-10 words, bold quotable text shown on the slide>",
-      "image_prompt": "<scene literal to headline, styled per visual_theme>",
+      "image_prompt": "<scene literal to headline, styled per visual_theme — used by AI image gen if enabled>",
+      "image_search_query": "<2-5 keyword search query for Pexels stock photos, e.g. 'luxury rooftop sunset' or 'stressed laptop late night' or 'open book desk lamp'>",
       "text_position": "top" | "center" | "bottom",
       "voiceover": "<8-12 words, conversational narration>"
     }}
   ]
 }}
+
+CRITICAL: image_search_query must be SHORT and CONCRETE — keywords a stock-photo site would index, not a sentence. Examples:
+- Headline "Two dads. Two money mindsets." → "luxury office sunset" or "marble corner office"
+- Headline "Stop trading time for money." → "tired laptop late night" or "midnight desk receipts"
+- Headline "Build assets that pay you while you sleep." → "tropical hammock beach sunset" or "infinity pool overlooking ocean"
+- Headline "You're not special." → "salt flat empty horizon" or "lone bench desert"
+- Headline (CTA) "Read this book." → "open book wooden desk" or "leather chair library lamp"
+Pick keywords that match the headline's emotional tone AND the book's visual_theme.
 
 Rules:
 - Slide 1 is "hook" — controversial/intriguing claim.

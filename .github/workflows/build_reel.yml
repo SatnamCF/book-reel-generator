@@ -52,9 +52,11 @@ jobs:
       - name: Generate reel
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Optional — only needed if IMAGE_PROVIDER=gemini and you have billing enabled.
+          # Pexels API key — free at https://www.pexels.com/api/
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          # Optional — only if IMAGE_PROVIDER=gemini and Google billing is enabled
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
-          IMAGE_PROVIDER: pollinations  # free, no key required
+          IMAGE_PROVIDER: pexels  # real photos, no AI distortion
         run: |
           python -m src.main "${{ github.event.inputs.book }}" \
             --duration ${{ github.event.inputs.duration }} \
