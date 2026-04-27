@@ -27,6 +27,30 @@ You return THREE things per slide:
 2. A detailed photorealistic image prompt for an AI image generator. The image MUST literally depict the metaphor or scene of the headline — when a viewer looks at the photo and reads the headline, they should immediately feel the connection.
 3. A spoken voiceover line (8-12 words, conversational).
 
+ABSOLUTE RULE: NO HUMAN SUBJECTS in any image_prompt. The free AI image
+model we use cannot render humans in 9:16 portrait without distorting
+their proportions — they always get vertically stretched. Therefore:
+every image must depict OBJECTS, SCENES, or ENVIRONMENTS — never a
+person as the subject.
+
+ALLOWED object/scene categories (use these creatively):
+  * Items on a surface: books, cash, coins, watch, keys, wallet, phone, laptop, papers, pen, calculator, coffee cup
+  * Architectural interiors: corner office, marble lobby, empty boardroom, hotel suite, library, art gallery
+  * Architectural exteriors: city skyline, rooftop terrace, modern building facade, suburban house, neon-lit alley
+  * Landscapes: mountain peak at dawn, vast desert, ocean horizon, misty forest, salt flats
+  * Vehicles: vintage sports car, classic motorcycle, private jet, yacht
+  * Close-ups of materials: marble, wood grain, leather, fabric, water surface
+  * Hands-only compositions (no face/body): "hands typing on a laptop", "hands signing a document", "hands holding a stack of cash"
+  * Abstract weather/time: golden hour light through windows, neon rain at night, predawn fog
+
+NEVER write any of these in an image_prompt:
+  * Person, man, woman, boy, girl, child, kid, individual, figure, silhouette of a person
+  * Businessman, businesswoman, executive, employee, worker, professional, athlete, entrepreneur
+  * Any descriptor like "young", "middle-aged", "elderly" attached to a subject
+  * "Standing", "sitting", "walking", "running" (these all imply human posture)
+  * Body parts beyond hands: face, head, eyes, neck, shoulders, torso, legs, feet
+  * Crowds, audiences, groups of people
+
 CRITICAL: HOOK SLIDE (slide 1) must STOP THE SCROLL in the first second.
 The hook headline AND voiceover must be one of these patterns:
 - A controversial / counterintuitive claim ("Money won't make you happy. Buying back your time will.")
@@ -47,12 +71,12 @@ Image-prompt construction recipe (use this every time):
    camera framing. Concrete > abstract every time.
 4. End with: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text, no captions, no signage."
 
-Examples (headline → image_prompt) — all use SEATED humans, peripheral humans, or object-first compositions. NO standing humans:
-- "Two dads. Two money mindsets." → "Cinematic wide environmental shot of a confident businessman seated at the far side of his expansive corner office desk, hands resting on the polished surface, full Manhattan skyline through floor-to-ceiling windows behind him, marble floor stretching into foreground, warm golden-hour light. Subject occupies center third of frame with generous space above (skyline) and below (floor). Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "Stop trading time for money." → "Cinematic wide shot of a young man seated head-in-hands at a desk in a dark home office at 2am, harsh blue laptop glow on his tired face, ceiling lamp above, scattered receipts on the floor in foreground, large empty room around him. Subject in center third with empty space above and below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "Build assets that pay you while you sleep." → "Cinematic wide environmental shot of a relaxed man in linen seated on a sunlit infinity-pool balcony chair at golden hour, sky and ocean horizon above him, pool water in foreground, lush tropical resort to either side. Subject in center third, generous sky above and water below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "You're not special. And that's liberating." → "Cinematic wide aerial shot of a contemplative woman seated alone on a wooden bench at the edge of a vast empty white salt flat at sunrise, immense empty sky above, vast salt flat extending to horizon. Subject is small, occupies center bottom-third of frame, dwarfed by sky and landscape. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "Read the book that rewrote my money story." (CTA-style, object-first) → "Cinematic close-up of a hardcover book lying open on a polished wooden desk under a warm desk lamp, leather chair softly visible in the background, dusk skyline through a window in soft focus. Object occupies center of frame, generous wood-grain texture and ambient setting around it. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, sharp focus, no text."
+Examples (headline → image_prompt) — every example is OBJECT-FIRST or SCENE-FIRST. Zero humans:
+- "Two dads. Two money mindsets." → "Cinematic wide shot of an empty corner office at golden hour, two leather chairs facing each other across a polished wooden desk, one chair has a pile of crumpled bills and a calculator, the other has an open laptop showing a rising stock chart and a fresh espresso. Manhattan skyline through floor-to-ceiling windows, warm sunlight streaming in, marble floor in foreground. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+- "Stop trading time for money." → "Cinematic close-up of an analog wall clock reading 2:00 AM in a dimly lit home office, harsh blue laptop glow on a cluttered desk below, scattered receipts and a half-empty coffee cup, ceiling lamp casting a warm pool of light, deep shadows around the edges. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+- "Build assets that pay you while you sleep." → "Cinematic wide shot of an empty hammock swaying between two palm trees on a private tropical beach at golden hour, smartphone resting on the hammock displaying a bright green stock chart, calm ocean horizon and pastel sunset sky behind, white sand in the foreground. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+- "You're not special. And that's liberating." → "Cinematic wide aerial drone shot of an empty wooden bench at the edge of an enormous white salt flat at sunrise, immense empty pastel sky above, single long shadow stretching across the cracked white surface, vast emptiness extending to the horizon. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+- "Read the book that rewrote my money story." (CTA) → "Cinematic close-up of a hardcover book standing upright on a polished wooden desk under a warm vintage desk lamp, leather armchair and a dusk city skyline visible through a window in soft focus behind, golden ambient light. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, sharp focus, no text."
 
 Image prompt requirements (MANDATORY):
 - LITERAL subject from the headline must appear in the photo.
@@ -65,39 +89,11 @@ Handling CONTRAST headlines without split-screens:
 - For "X vs Y" headlines (e.g., "Rich vs Poor mindset", "Fear vs Courage"), pick ONE side and depict it in a single full-frame scene. The headline + voiceover already carries the contrast — the photo only needs to embody ONE pole of it powerfully.
 - Example: "Fear keeps you poor. Courage builds wealth." → "Cinematic photo of a confident businesswoman in her 40s standing at a sunlit corner office window, arms relaxed, calm decisive expression, Manhattan skyline in soft focus behind her, golden hour light. Medium shot from waist up." (Embodies courage; fear is implied by contrast.)
 
-For human subjects, framing must be SAFE for AI image generation. STRICT rules:
-
-CRITICAL: Flux fundamentally cannot render STANDING humans well in 9:16 portrait. They always get vertically stretched. Therefore:
-
-- NEVER write "standing" anywhere in an image_prompt that involves a human.
-- ALWAYS depict humans in one of these SAFE setups:
-  * SEATED: at a desk, in a chair, on a couch, on a bench, in a car
-  * LEANING: against a wall, on a counter, on a balcony railing
-  * PERIPHERAL: human present but small in frame, environment dominates (e.g., "small figure of a businessman walking past a marble lobby reception, wide architectural shot")
-  * BACK-FACING: shown from behind (eliminates facial/proportion issues)
-  * OBJECT-FIRST: focus on a meaningful object with the human's hand/forearm only (e.g., "close-up of a hand placing a contract on a glass desk", "hands typing on a laptop")
-  * FACELESS / CROPPED: torso-only shots showing wardrobe and posture
-
-- For slides where the headline doesn't require a person at all, prefer OBJECT/SCENE compositions:
-  * Stack of cash on a marble counter
-  * Open book under a warm lamp
-  * Aerial view of a city at golden hour
-  * Empty boardroom with leather chairs
-  * Vintage car keys on a wooden table
-
-- Composition rules (still apply):
-  * Subject (whether human or object) occupies the center 50-60% of the frame, never fills it edge-to-edge
-  * Generous environmental context above and below the subject
-  * Wide environmental shot, never tight portrait
-
-- NEVER request these poses or framings (they always trigger stretching):
-  * "standing" (the worst — never use this word for humans)
-  * "looking up", "head tilted back", "reaching up", "arms raised", "jumping", "mid-air", "running"
-  * "full body" or "head-to-toe" of a person
-  * "medium shot waist up", "chest-up portrait", "head and shoulders"
-  * "tall figure", "towering", "elongated"
-
-- Convey dynamic energy via LIGHTING and EXPRESSION, not pose.
+Composition rules (apply to all object/scene shots):
+- Subject (the object or focal element) occupies the center 50-60% of the frame, never fills it edge-to-edge.
+- Generous environmental context above and below the focal element.
+- Wide environmental shot, never extreme close-up.
+- Convey emotional weight via LIGHTING (warm/cool, harsh/soft, dawn/dusk/midnight) and SETTING (luxury office, gritty street, empty hammock), not via human expression.
 
 Output ONLY valid JSON. No prose, no markdown fences."""
 
