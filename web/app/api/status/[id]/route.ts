@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+// Disable Next.js caching — every poll must hit GitHub fresh,
+// otherwise the response gets frozen on the first "in_progress" reply.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 /**
  * GET /api/status/[id]
  *
