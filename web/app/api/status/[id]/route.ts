@@ -41,23 +41,40 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     return NextResponse.json({ status: "completed", conclusion: run.conclusion });
   }
 
-  // 2. Find the release the workflow just published — match by run_id in body
+  // 2. Find the release the workflow just published.
   const releasesRes = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/releases?per_page=15`,
+    `https://api.github.com/repos/${owner}/${repo}/releases?per_page=20`,
     { headers: auth },
   );
   if (!releasesRes.ok) {
     return NextResponse.json({ error: `Release lookup failed (${releasesRes.status})` }, { status: 502 });
   }
-  const releases = await releasesRes.json();
-  // The workflow body includes `Run: ${{ github.run_id }}` — find the matching one
-  const release = releases.find((r: { body?: string }) => r.body?.includes(`Run: ${runId}`));
+  const releases: Array<{
+    body?: string;
+    assets?: Array<{ name: string; browser_download_url: string }>;
+    created_at?: string;
+    html_url?: string;
+  }> = await releasesRes.json();
+
+  // Strategy 1: exact match on `Run: ${runId}` in body
+  let release = releases.find((r) => r.body?.includes(`Run: ${runId}`));
+
+  // Strategy 2: fallback — release created after the run finished, within ±2 min
+  if (!release && run.updated_at) {
+    const runFinishedAt = new Date(run.updated_at).getTime();
+    release = releases.find((r) => {
+      if (!r.created_at) return false;
+      const releaseCreatedAt = new Date(r.created_at).getTime();
+      return Math.abs(releaseCreatedAt - runFinishedAt) < 2 * 60 * 1000;
+    });
+  }
+
   if (!release) {
     // Release publishes a moment after the run completes — tell the client to keep polling
     return NextResponse.json({ status: "completed", conclusion: "success", downloadUrl: null });
   }
 
-  const mp4 = (release.assets || []).find((a: { name: string }) => a.name.endsWith(".mp4"));
+  const mp4 = (release.assets || []).find((a) => a.name.endsWith(".mp4"));
   if (!mp4) {
     return NextResponse.json({ error: "Release found but no MP4 asset attached" }, { status: 502 });
   }
