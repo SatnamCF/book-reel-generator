@@ -1,10 +1,11 @@
 """Generate slide content for a book reel using Claude.
 
 Output schema (per slide):
-    type:          "hook" | "summary" | "cta"
-    headline:      bold white text shown overlaid on the photo (5-10 words)
-    image_prompt:  detailed prompt for Gemini Imagen (cinematic, photorealistic, 9:16)
-    voiceover:     conversational narrator line (8-12 words)
+    type:           "hook" | "summary" | "cta"
+    headline:       bold white text shown overlaid on the photo (5-10 words)
+    image_prompt:   detailed prompt for the image generator (cinematic, photorealistic, 9:16)
+    text_position:  "top" | "center" | "bottom" — where headline sits on slide
+    voiceover:      conversational narrator line (8-12 words)
 """
 from __future__ import annotations
 
@@ -46,11 +47,11 @@ Image-prompt construction recipe (use this every time):
    camera framing. Concrete > abstract every time.
 4. End with: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text, no captions, no signage."
 
-Examples (headline → image_prompt):
-- "Two dads. Two money mindsets." → "Split-screen cinematic photo. LEFT: exhausted middle-aged man in a fluorescent-lit beige cubicle, head in hands, surrounded by stacked paperwork. RIGHT: same age man relaxed on a sunny patio, tablet showing rising investment charts, palm tree shadow. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
-- "Stop trading time for money." → "Cinematic photo of a young man head-in-hands hunched over a laptop at 2am, harsh blue screen glow on his tired face, crumpled receipts and an analog clock at 2:00 on a dark cluttered desk. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
-- "Build assets that pay you while you sleep." → "Cinematic photo of a relaxed man in linen sleeping on a hammock at golden hour, smartphone on his chest showing a green stock chart, lush tropical resort and ocean behind him. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
-- "You're not special. And that's liberating." → "Cinematic aerial photo of a single tiny human silhouette walking across an enormous empty white salt flat at sunrise, casting a long shadow, scale dwarfed by the vast emptiness. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text."
+Examples (headline → image_prompt) — note all use SINGLE-FRAME single-subject scenes:
+- "Two dads. Two money mindsets." → "Cinematic photo of a confident middle-aged man in a tailored navy suit standing in his sunlit corner office, hand resting on a glass desk, calm self-assured expression, Manhattan skyline soft-focus behind him, golden-hour warm light. Medium shot from waist up. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "Stop trading time for money." → "Cinematic photo of a young man head-in-hands seated at a cluttered desk at 2am, harsh blue laptop glow on his tired face, crumpled receipts and an analog clock at 2:00 on the desk, dark home office in shadow. Chest-up framing. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "Build assets that pay you while you sleep." → "Cinematic photo of a relaxed man in linen seated on a sunlit balcony at golden hour, smartphone in hand showing a green stock chart, lush tropical resort behind him in soft focus. Chest-up framing. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "You're not special. And that's liberating." → "Cinematic photo of a contemplative woman seated alone on a wooden bench at the edge of a vast empty white salt flat at sunrise, soft shadows, looking forward into the distance. Medium-wide shot. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
 
 Image prompt requirements (MANDATORY):
 - LITERAL subject from the headline must appear in the photo.
