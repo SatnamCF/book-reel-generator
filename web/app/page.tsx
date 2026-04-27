@@ -47,6 +47,17 @@ export default function Home() {
 
   async function poll(runId: number, startedAt: number) {
     try {
+      // Hard timeout so we never poll forever silently
+      if (Date.now() - startedAt > 12 * 60 * 1000) {
+        setStatus({
+          phase: "error",
+          message:
+            "Took longer than 12 minutes — something likely failed. " +
+            `Check the Action logs at https://github.com/SatnamCF/book-reel-generator/actions/runs/${runId}`,
+        });
+        return;
+      }
+
       const res = await fetch(`/api/status/${runId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Status check failed");
@@ -55,8 +66,13 @@ export default function Home() {
         setStatus({ phase: "ready", downloadUrl: data.downloadUrl, releaseUrl: data.releaseUrl });
         return;
       }
-      if (data.status === "completed" && data.conclusion !== "success") {
-        setStatus({ phase: "error", message: `Workflow ${data.conclusion}. Check the Action logs.` });
+      if (data.status === "completed" && data.conclusion && data.conclusion !== "success") {
+        setStatus({
+          phase: "error",
+          message:
+            `Workflow ${data.conclusion}. ` +
+            `View logs: https://github.com/SatnamCF/book-reel-generator/actions/runs/${runId}`,
+        });
         return;
       }
 
