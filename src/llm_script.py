@@ -47,11 +47,12 @@ Image-prompt construction recipe (use this every time):
    camera framing. Concrete > abstract every time.
 4. End with: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text, no captions, no signage."
 
-Examples (headline → image_prompt) — all use ENVIRONMENTAL WIDE SHOTS where the subject occupies only the center 50-60% of the frame, with sky/ceiling above and floor/foreground below:
-- "Two dads. Two money mindsets." → "Cinematic wide environmental shot of a confident middle-aged man in a tailored navy suit standing inside his expansive corner office, full Manhattan skyline visible through floor-to-ceiling windows above him, polished marble floor in foreground, hands relaxed at his sides, warm golden-hour light. Subject occupies center third of frame with generous space above (ceiling and skyline) and below (floor). Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "Stop trading time for money." → "Cinematic wide shot of a small figure of a young man head-in-hands seated at a desk in a dark home office at 2am, harsh blue laptop glow, ceiling lamp above, scattered receipts on the floor in foreground, large empty room around him. Subject occupies center third with empty space above and below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "Build assets that pay you while you sleep." → "Cinematic wide environmental shot of a relaxed man in linen seated on a sunlit infinity-pool balcony at golden hour, sky and ocean horizon above him, pool water in foreground, lush tropical resort to either side. Subject in center third, generous sky above and water below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "You're not special. And that's liberating." → "Cinematic wide aerial shot of a small contemplative woman seated alone on a wooden bench at the edge of a vast empty white salt flat at sunrise, immense empty sky above, vast salt flat extending to horizon. Subject is small, occupies center bottom-third of frame, dwarfed by sky and landscape. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+Examples (headline → image_prompt) — all use SEATED humans, peripheral humans, or object-first compositions. NO standing humans:
+- "Two dads. Two money mindsets." → "Cinematic wide environmental shot of a confident businessman seated at the far side of his expansive corner office desk, hands resting on the polished surface, full Manhattan skyline through floor-to-ceiling windows behind him, marble floor stretching into foreground, warm golden-hour light. Subject occupies center third of frame with generous space above (skyline) and below (floor). Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "Stop trading time for money." → "Cinematic wide shot of a young man seated head-in-hands at a desk in a dark home office at 2am, harsh blue laptop glow on his tired face, ceiling lamp above, scattered receipts on the floor in foreground, large empty room around him. Subject in center third with empty space above and below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "Build assets that pay you while you sleep." → "Cinematic wide environmental shot of a relaxed man in linen seated on a sunlit infinity-pool balcony chair at golden hour, sky and ocean horizon above him, pool water in foreground, lush tropical resort to either side. Subject in center third, generous sky above and water below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "You're not special. And that's liberating." → "Cinematic wide aerial shot of a contemplative woman seated alone on a wooden bench at the edge of a vast empty white salt flat at sunrise, immense empty sky above, vast salt flat extending to horizon. Subject is small, occupies center bottom-third of frame, dwarfed by sky and landscape. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "Read the book that rewrote my money story." (CTA-style, object-first) → "Cinematic close-up of a hardcover book lying open on a polished wooden desk under a warm desk lamp, leather chair softly visible in the background, dusk skyline through a window in soft focus. Object occupies center of frame, generous wood-grain texture and ambient setting around it. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, sharp focus, no text."
 
 Image prompt requirements (MANDATORY):
 - LITERAL subject from the headline must appear in the photo.
@@ -64,26 +65,39 @@ Handling CONTRAST headlines without split-screens:
 - For "X vs Y" headlines (e.g., "Rich vs Poor mindset", "Fear vs Courage"), pick ONE side and depict it in a single full-frame scene. The headline + voiceover already carries the contrast — the photo only needs to embody ONE pole of it powerfully.
 - Example: "Fear keeps you poor. Courage builds wealth." → "Cinematic photo of a confident businesswoman in her 40s standing at a sunlit corner office window, arms relaxed, calm decisive expression, Manhattan skyline in soft focus behind her, golden hour light. Medium shot from waist up." (Embodies courage; fear is implied by contrast.)
 
-For human subjects, framing must be SAFE for AI image generation. Strict rules:
-- COMPOSITION (most important): subjects must NOT fill the 9:16 frame top-to-bottom. They should occupy the CENTER portion (~50-60% of vertical space) with GENEROUS environmental context above AND below. A subject filling the entire vertical frame always READS as stretched even when proportions are technically correct.
-- ALWAYS use one of these framings (all imply a wide environmental shot, not a tight portrait):
-  * "Wide environmental shot of [subject] in [setting], generous headroom above and floor visible below"
-  * "Establishing shot of [subject], subject occupies center third of frame, lots of context around"
-  * "Cinematic wide shot of [subject] at [location], framed with negative space above and below"
-- NEVER request these — they fill the frame and read as stretched:
-  * "Medium shot waist up" (this is too tight for 9:16 — subject fills the height)
-  * "Chest-up portrait" or "head and shoulders" (way too tight)
-  * "Close-up" of any kind
-- NEVER request these poses — they reliably trigger Flux/SDXL to elongate necks, limbs, or torsos:
-  * "looking up at [sky/lights/ceiling]" (elongates neck)
-  * "head tilted back" (elongates neck)
-  * "reaching up" / "arms raised overhead" (elongates arms)
-  * "standing on tiptoe" / "jumping" / "mid-air" (elongates legs)
-  * "stretching" / "yoga pose" / "running" (any extended pose)
-  * "full body shot" / "head-to-toe" of a standing person (always elongates)
-  * "tall figure" / "towering" / "elongated shadow" (literally asks for stretch)
-- If the headline calls for a dynamic feel, convey it via LIGHTING and EXPRESSION, not pose.
-- Subjects should look NATURAL and STILL — like a documentary photographer's environmental portrait, not a magazine close-up.
+For human subjects, framing must be SAFE for AI image generation. STRICT rules:
+
+CRITICAL: Flux fundamentally cannot render STANDING humans well in 9:16 portrait. They always get vertically stretched. Therefore:
+
+- NEVER write "standing" anywhere in an image_prompt that involves a human.
+- ALWAYS depict humans in one of these SAFE setups:
+  * SEATED: at a desk, in a chair, on a couch, on a bench, in a car
+  * LEANING: against a wall, on a counter, on a balcony railing
+  * PERIPHERAL: human present but small in frame, environment dominates (e.g., "small figure of a businessman walking past a marble lobby reception, wide architectural shot")
+  * BACK-FACING: shown from behind (eliminates facial/proportion issues)
+  * OBJECT-FIRST: focus on a meaningful object with the human's hand/forearm only (e.g., "close-up of a hand placing a contract on a glass desk", "hands typing on a laptop")
+  * FACELESS / CROPPED: torso-only shots showing wardrobe and posture
+
+- For slides where the headline doesn't require a person at all, prefer OBJECT/SCENE compositions:
+  * Stack of cash on a marble counter
+  * Open book under a warm lamp
+  * Aerial view of a city at golden hour
+  * Empty boardroom with leather chairs
+  * Vintage car keys on a wooden table
+
+- Composition rules (still apply):
+  * Subject (whether human or object) occupies the center 50-60% of the frame, never fills it edge-to-edge
+  * Generous environmental context above and below the subject
+  * Wide environmental shot, never tight portrait
+
+- NEVER request these poses or framings (they always trigger stretching):
+  * "standing" (the worst — never use this word for humans)
+  * "looking up", "head tilted back", "reaching up", "arms raised", "jumping", "mid-air", "running"
+  * "full body" or "head-to-toe" of a person
+  * "medium shot waist up", "chest-up portrait", "head and shoulders"
+  * "tall figure", "towering", "elongated"
+
+- Convey dynamic energy via LIGHTING and EXPRESSION, not pose.
 
 Output ONLY valid JSON. No prose, no markdown fences."""
 

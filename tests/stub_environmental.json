@@ -1,0 +1,21 @@
+{
+  "book": "Rich Dad Poor Dad",
+  "author": "Robert Kiyosaki",
+  "visual_theme": "Luxury vs hustle: golden-hour business photography. Marble lobbies, rooftop terraces, suits, sports cars contrasted with cluttered cubicles, late-night laptops, drained faces. Warm gold highlights, deep navy shadows.",
+  "slides": [
+    {
+      "type": "summary",
+      "headline": "Two dads. Two money mindsets.",
+      "image_prompt": "Cinematic wide environmental shot of a confident middle-aged man in a tailored navy suit standing inside his expansive corner office, full Manhattan skyline visible through floor-to-ceiling windows above him, polished marble floor in foreground, hands relaxed at his sides, warm golden-hour light. Subject occupies center third of frame with generous space above (ceiling and skyline) and below (floor). Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text.",
+      "text_position": "top",
+      "voiceover": "Robert Kiyosaki had two dads with two completely opposite money mindsets."
+    },
+    {
+      "type": "summary",
+      "headline": "The middle class works for money. Rich people make money work.",
+      "image_prompt": "Cinematic wide environmental shot of a calm businessman in his forties seated at the far side of a vast polished glass conference table in a high-rise corner office, immense Manhattan skyline through windows behind him, polished marble floor stretching into foreground. Subject in upper-center of frame, generous floor below and skyline above. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text.",
+      "text_position": "top",
+      "voiceover": "The middle class trades hours for dollars. The rich build assets that pay them."
+    }
+  ]
+}
