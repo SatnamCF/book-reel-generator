@@ -64,7 +64,8 @@ def from_url(url: str, timeout: int = 60, headers: dict | None = None) -> Image.
 def from_pexels(query: str, slide_index: int = 0) -> Image.Image:
     """Search Pexels for portrait photos and pick a good one."""
     raw_key = os.environ.get("PEXELS_API_KEY", "")
-    api_key = raw_key.strip()  # defend against accidental whitespace from copy-paste
+    # Strip whitespace AND surrounding quotes (people often paste "key" by accident)
+    api_key = raw_key.strip().strip('"').strip("'").strip()
     if not api_key:
         raise RuntimeError(
             "PEXELS_API_KEY is not set. Get a free key at https://www.pexels.com/api/ "
@@ -76,7 +77,13 @@ def from_pexels(query: str, slide_index: int = 0) -> Image.Image:
         f"https://api.pexels.com/v1/search?query={encoded}"
         f"&orientation=portrait&size=large&per_page=15"
     )
-    req = urllib.request.Request(api_url, headers={"Authorization": api_key})
+    req = urllib.request.Request(
+        api_url,
+        headers={
+            "Authorization": api_key,
+            "User-Agent": "book-reel-generator/1.0 (github.com/SatnamCF/book-reel-generator)",
+        },
+    )
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             data = json.loads(r.read())
