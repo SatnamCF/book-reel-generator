@@ -18,6 +18,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -62,21 +63,36 @@ def from_url(url: str, timeout: int = 60, headers: dict | None = None) -> Image.
 
 def from_pexels(query: str, slide_index: int = 0) -> Image.Image:
     """Search Pexels for portrait photos and pick a good one."""
-    api_key = os.environ.get("PEXELS_API_KEY")
+    raw_key = os.environ.get("PEXELS_API_KEY", "")
+    api_key = raw_key.strip()  # defend against accidental whitespace from copy-paste
     if not api_key:
         raise RuntimeError(
             "PEXELS_API_KEY is not set. Get a free key at https://www.pexels.com/api/ "
-            "(takes 30 seconds), then add it as a GitHub Secret."
+            "(takes 30 seconds), then add it as a GitHub Secret named PEXELS_API_KEY."
         )
+
     encoded = urllib.parse.quote(query.strip())
-    # per_page=15 → enough variety; orientation=portrait → 9:16-friendly
     api_url = (
         f"https://api.pexels.com/v1/search?query={encoded}"
         f"&orientation=portrait&size=large&per_page=15"
     )
     req = urllib.request.Request(api_url, headers={"Authorization": api_key})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        data = json.loads(r.read())
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        if e.code == 401 or e.code == 403:
+            masked = (api_key[:4] + "..." + api_key[-3:]) if len(api_key) > 8 else "(too short)"
+            raise RuntimeError(
+                f"Pexels rejected the API key ({e.code} {e.reason}). "
+                f"Key being sent (masked): '{masked}', length={len(api_key)}. "
+                "Verify the secret PEXELS_API_KEY at "
+                "https://github.com/<your-user>/book-reel-generator/settings/secrets/actions "
+                "matches the key shown in your Pexels dashboard at "
+                "https://www.pexels.com/api/. Common causes: extra whitespace in the secret value, "
+                "or the key was revoked/regenerated on Pexels."
+            ) from e
+        raise
 
     photos = data.get("photos") or []
     if not photos:
