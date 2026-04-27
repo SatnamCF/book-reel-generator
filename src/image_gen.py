@@ -67,14 +67,16 @@ def from_pollinations(prompt: str, seed: int = 42) -> Image.Image:
     tendency to elongate human figures.
     """
     SRC_W, SRC_H = 576, 1024  # exact 9:16, Flux native
-    # Belt-and-suspenders: ALWAYS append anatomy guards. Flux respects
-    # late-prompt tokens, so even if Claude already included them, the
-    # repetition strengthens the signal.
+    # Belt-and-suspenders: ALWAYS append anatomy + composition guards.
+    # Flux respects late-prompt tokens, so even if Claude already included
+    # them, the repetition strengthens the signal.
     prompt = (
         f"{prompt.rstrip('. ')}. "
-        "Anatomically correct natural human proportions, no distortion, no elongation, "
-        "no stretched limbs or bodies, no tall thin figures, no split screens, "
-        "single coherent scene, sharp focus."
+        "Subject occupies center 50-60% of frame with generous empty space "
+        "above and below — never fills the frame top to bottom. "
+        "Anatomically correct natural human proportions, no distortion, "
+        "no elongation, no stretched limbs or bodies, no tall thin figures, "
+        "no split screens, single coherent scene, sharp focus."
     )
     encoded = urllib.parse.quote(prompt[:1800], safe="")
     # nofeed bypasses Pollinations' public feed (and seems to dodge stale cached

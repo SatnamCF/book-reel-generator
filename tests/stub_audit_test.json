@@ -1,0 +1,35 @@
+{
+  "book": "Rich Dad Poor Dad",
+  "author": "Robert Kiyosaki",
+  "visual_theme": "Luxury vs hustle: golden-hour business photography. Marble lobbies, rooftop terraces, suits, sports cars contrasted with cluttered cubicles, late-night laptops, drained faces. Warm gold highlights, deep navy shadows.",
+  "slides": [
+    {
+      "type": "hook",
+      "headline": "Two dads. Two money mindsets.",
+      "image_prompt": "Cinematic photo of a confident middle-aged man in a tailored navy suit standing in his sunlit corner office, hand resting on a glass desk, calm self-assured expression, Manhattan skyline soft-focus behind him, golden-hour warm light. Medium shot from waist up. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, no tall thin figures, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "top",
+      "voiceover": "Robert Kiyosaki had two dads with two completely opposite money mindsets."
+    },
+    {
+      "type": "summary",
+      "headline": "Your house isn't an asset. It's eating your paycheck.",
+      "image_prompt": "Cinematic photo of a tired couple in their thirties seated at their kitchen table at night, scattered bills and a calculator in front of them, harsh overhead light, drained worried expressions, modest suburban kitchen in soft focus. Chest-up framing. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, no tall thin figures, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "top",
+      "voiceover": "Most people think their house is an asset. It's actually a liability."
+    },
+    {
+      "type": "summary",
+      "headline": "The middle class works for money. Rich people make money work.",
+      "image_prompt": "Cinematic photo of a calm businessman in his forties seated at a polished glass desk in a high-rise office, tablet in hand showing rising charts, Manhattan skyline behind him, golden-hour warm sunlight, confident relaxed expression. Medium shot from waist up. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no distortion, no elongation, no stretched limbs or bodies, no tall thin figures, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "top",
+      "voiceover": "The middle class trades hours for dollars. The rich build assets that pay them."
+    },
+    {
+      "type": "cta",
+      "headline": "Read Rich Dad Poor Dad. Rewrite your money story.",
+      "image_prompt": "Cinematic photo of the book Rich Dad Poor Dad standing upright on a polished wooden desk, warm desk lamp casting golden light, leather chair and Manhattan skyline soft-focus through a window behind it, dusk lighting. Medium close-up product shot. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, sharp focus, professional photography, no text, no captions, no signage.",
+      "text_position": "top",
+      "voiceover": "Read Rich Dad Poor Dad by Robert Kiyosaki. It will change how you see money."
+    }
+  ]
+}

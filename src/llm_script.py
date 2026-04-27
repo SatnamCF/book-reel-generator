@@ -47,11 +47,11 @@ Image-prompt construction recipe (use this every time):
    camera framing. Concrete > abstract every time.
 4. End with: "Vertical portrait 9:16, photorealistic, hyperreal, cinematic, no text, no captions, no signage."
 
-Examples (headline → image_prompt) — note all use SINGLE-FRAME single-subject scenes:
-- "Two dads. Two money mindsets." → "Cinematic photo of a confident middle-aged man in a tailored navy suit standing in his sunlit corner office, hand resting on a glass desk, calm self-assured expression, Manhattan skyline soft-focus behind him, golden-hour warm light. Medium shot from waist up. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "Stop trading time for money." → "Cinematic photo of a young man head-in-hands seated at a cluttered desk at 2am, harsh blue laptop glow on his tired face, crumpled receipts and an analog clock at 2:00 on the desk, dark home office in shadow. Chest-up framing. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "Build assets that pay you while you sleep." → "Cinematic photo of a relaxed man in linen seated on a sunlit balcony at golden hour, smartphone in hand showing a green stock chart, lush tropical resort behind him in soft focus. Chest-up framing. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
-- "You're not special. And that's liberating." → "Cinematic photo of a contemplative woman seated alone on a wooden bench at the edge of a vast empty white salt flat at sunrise, soft shadows, looking forward into the distance. Medium-wide shot. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+Examples (headline → image_prompt) — all use ENVIRONMENTAL WIDE SHOTS where the subject occupies only the center 50-60% of the frame, with sky/ceiling above and floor/foreground below:
+- "Two dads. Two money mindsets." → "Cinematic wide environmental shot of a confident middle-aged man in a tailored navy suit standing inside his expansive corner office, full Manhattan skyline visible through floor-to-ceiling windows above him, polished marble floor in foreground, hands relaxed at his sides, warm golden-hour light. Subject occupies center third of frame with generous space above (ceiling and skyline) and below (floor). Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "Stop trading time for money." → "Cinematic wide shot of a small figure of a young man head-in-hands seated at a desk in a dark home office at 2am, harsh blue laptop glow, ceiling lamp above, scattered receipts on the floor in foreground, large empty room around him. Subject occupies center third with empty space above and below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "Build assets that pay you while you sleep." → "Cinematic wide environmental shot of a relaxed man in linen seated on a sunlit infinity-pool balcony at golden hour, sky and ocean horizon above him, pool water in foreground, lush tropical resort to either side. Subject in center third, generous sky above and water below. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
+- "You're not special. And that's liberating." → "Cinematic wide aerial shot of a small contemplative woman seated alone on a wooden bench at the edge of a vast empty white salt flat at sunrise, immense empty sky above, vast salt flat extending to horizon. Subject is small, occupies center bottom-third of frame, dwarfed by sky and landscape. Vertical portrait 9:16, photorealistic, hyperreal, cinematic, anatomically correct natural human proportions, no text."
 
 Image prompt requirements (MANDATORY):
 - LITERAL subject from the headline must appear in the photo.
@@ -65,7 +65,15 @@ Handling CONTRAST headlines without split-screens:
 - Example: "Fear keeps you poor. Courage builds wealth." → "Cinematic photo of a confident businesswoman in her 40s standing at a sunlit corner office window, arms relaxed, calm decisive expression, Manhattan skyline in soft focus behind her, golden hour light. Medium shot from waist up." (Embodies courage; fear is implied by contrast.)
 
 For human subjects, framing must be SAFE for AI image generation. Strict rules:
-- ALWAYS use one of: "medium shot from waist up", "chest-up portrait", "head and shoulders", "seated at a desk", "leaning on a counter", "standing facing camera in natural pose".
+- COMPOSITION (most important): subjects must NOT fill the 9:16 frame top-to-bottom. They should occupy the CENTER portion (~50-60% of vertical space) with GENEROUS environmental context above AND below. A subject filling the entire vertical frame always READS as stretched even when proportions are technically correct.
+- ALWAYS use one of these framings (all imply a wide environmental shot, not a tight portrait):
+  * "Wide environmental shot of [subject] in [setting], generous headroom above and floor visible below"
+  * "Establishing shot of [subject], subject occupies center third of frame, lots of context around"
+  * "Cinematic wide shot of [subject] at [location], framed with negative space above and below"
+- NEVER request these — they fill the frame and read as stretched:
+  * "Medium shot waist up" (this is too tight for 9:16 — subject fills the height)
+  * "Chest-up portrait" or "head and shoulders" (way too tight)
+  * "Close-up" of any kind
 - NEVER request these poses — they reliably trigger Flux/SDXL to elongate necks, limbs, or torsos:
   * "looking up at [sky/lights/ceiling]" (elongates neck)
   * "head tilted back" (elongates neck)
@@ -74,8 +82,8 @@ For human subjects, framing must be SAFE for AI image generation. Strict rules:
   * "stretching" / "yoga pose" / "running" (any extended pose)
   * "full body shot" / "head-to-toe" of a standing person (always elongates)
   * "tall figure" / "towering" / "elongated shadow" (literally asks for stretch)
-- If the headline calls for a dynamic feel, convey it via LIGHTING and EXPRESSION, not pose. E.g., "intense focused expression, sweat on brow, dramatic rim light" instead of "athlete jumping for the rim".
-- Subjects should look NATURAL and STILL — like a portrait photographer's shot, not an action photographer's.
+- If the headline calls for a dynamic feel, convey it via LIGHTING and EXPRESSION, not pose.
+- Subjects should look NATURAL and STILL — like a documentary photographer's environmental portrait, not a magazine close-up.
 
 Output ONLY valid JSON. No prose, no markdown fences."""
 
