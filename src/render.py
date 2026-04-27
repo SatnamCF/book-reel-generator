@@ -226,19 +226,42 @@ def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
     return img
 
 
-def _draw_cta(img: Image.Image, headline: str = "") -> Image.Image:
-    """Premium CTA: bigger button, label above, more contrast."""
-    img = _add_bottom_gradient(img, max_alpha=180)
+def _draw_cta(img: Image.Image, book: str = "", author: str = "") -> Image.Image:
+    """Premium CTA: book title + author + gold button + link-in-bio hint.
+
+    Layout from top-of-CTA-block to bottom:
+      [BOOK TITLE]   (large gold)
+      by Author       (smaller white)
+      ─ divider ─
+      [GRAB YOUR COPY →]   (gold pill)
+      ↑ LINK IN BIO ↑      (gold tiny)
+    """
+    img = _add_bottom_gradient(img, max_alpha=200)
     d = ImageDraw.Draw(img)
 
-    # Small label above button
-    f_label = _font(40, bold=True)
-    label = "AVAILABLE NOW"
-    d.text((W // 2, H - 380), label, font=f_label, fill=(255, 255, 255), anchor="mt")
+    # Book title — large, gold, wrapped to fit width
+    if book:
+        title_lines, title_size = _wrap_to_fit(book.upper(), 64, 940)
+        f_title = _font(title_size, bold=True)
+        ascent, descent = f_title.getmetrics()
+        line_h = ascent + descent + 4
+        title_block_h = line_h * len(title_lines)
+        # Position: 480px above bottom (above the button at H-320)
+        title_y = H - 460 - title_block_h
+        for i, line in enumerate(title_lines):
+            y = title_y + i * line_h
+            for dx, dy in ((4, 4), (-2, 2), (2, -2)):
+                d.text((W // 2 + dx, y + dy), line, font=f_title, fill=(0, 0, 0), anchor="mt")
+            d.text((W // 2, y), line, font=f_title, fill=(255, 215, 100), anchor="mt")
+    if author:
+        f_author = _font(34, bold=False)
+        author_y = H - 410
+        for dx, dy in ((3, 3), (-1, 1)):
+            d.text((W // 2 + dx, author_y + dy), f"by {author}", font=f_author, fill=(0, 0, 0), anchor="mt")
+        d.text((W // 2, author_y), f"by {author}", font=f_author, fill=(245, 245, 245), anchor="mt")
 
-    # Gold pill button with shadow
+    # Gold pill button with drop shadow
     btn_top, btn_bot = H - 320, H - 220
-    # Drop shadow
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sd = ImageDraw.Draw(shadow)
     sd.rounded_rectangle([130, btn_top + 6, W - 130, btn_bot + 6], radius=50, fill=(0, 0, 0, 140))
@@ -250,7 +273,7 @@ def _draw_cta(img: Image.Image, headline: str = "") -> Image.Image:
     f_btn = _font(50, bold=True)
     d.text((W // 2, (btn_top + btn_bot) // 2), "GRAB YOUR COPY  →", font=f_btn, fill=(40, 25, 10), anchor="mm")
 
-    # Tiny "link in bio" hint below
+    # Link-in-bio hint
     f_tiny = _font(30, bold=True)
     d.text((W // 2, H - 170), "↑  LINK IN BIO  ↑", font=f_tiny, fill=(255, 215, 100), anchor="mt")
     return img
@@ -268,7 +291,7 @@ def render_slide(slide: dict, slide_index: int = 0) -> Image.Image:
         position = "top" if slide.get("type") == "cta" else slide.get("text_position", "top")
         img = _draw_headline(img, slide.get("headline", ""), position=position)
     if slide.get("type") == "cta":
-        img = _draw_cta(img, slide.get("headline", ""))
+        img = _draw_cta(img, book=slide.get("_book", ""), author=slide.get("_author", ""))
     return img
 
 
@@ -417,9 +440,16 @@ def render_all(content: dict, target_duration: int, work_dir: Path, out_path: Pa
     voice_dir = work_dir / "voiceover"
     slides_dir.mkdir(parents=True, exist_ok=True)
 
+    book_title = content.get("book", "")
+    book_author = content.get("author", "")
+
     slide_paths = []
     for i, slide in enumerate(slides):
         path = slides_dir / f"{i + 1:02d}.png"
+        # Inject book metadata into CTA so the renderer can display it
+        if slide.get("type") == "cta":
+            slide["_book"] = book_title
+            slide["_author"] = book_author
         print(f"  Rendering slide {i + 1}/{len(slides)}: {slide.get('headline', '')[:60]}")
         render_slide(slide, slide_index=i).save(path, "PNG", optimize=True)
         slide_paths.append(path)
