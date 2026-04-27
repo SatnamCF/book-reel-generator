@@ -7,8 +7,8 @@ import { NextResponse } from "next/server";
  * matching GitHub Release (auto-published by the workflow) and returns its
  * MP4 download URL.
  */
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export async function GET(_req: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
   const runId = Number(id);
   if (!runId || Number.isNaN(runId)) {
     return NextResponse.json({ error: "Invalid run id" }, { status: 400 });
