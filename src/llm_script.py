@@ -128,6 +128,7 @@ Return JSON:
     {{
       "type": "hook" | "summary" | "cta",
       "headline": "<5-10 words, bold quotable text shown on the slide>",
+      "hook_subline": "<HOOK SLIDE ONLY: 6-12 word teaser promising payoff, e.g. '3 ideas that will reset how you think →' or 'The answer will surprise you. Watch till the end.' Empty string for non-hook slides.>",
       "image_prompt": "<scene literal to headline, styled per visual_theme — used by AI image gen if enabled>",
       "image_search_query": "<2-5 keyword search query for Pexels stock photos, e.g. 'luxury rooftop sunset' or 'stressed laptop late night' or 'open book desk lamp'>",
       "text_position": "top" | "center" | "bottom",
@@ -135,6 +136,21 @@ Return JSON:
     }}
   ]
 }}
+
+CRITICAL — the hook_subline (slide 1 only):
+A small text under the main hook headline that creates a CURIOSITY GAP and
+PROMISES PAYOFF. Without it, people see the bold claim and scroll. With it,
+they stay because they want the answer/list/insight.
+
+Patterns that work:
+- Numbered promise: "3 lessons that changed everything →"
+- Tease the answer: "The fix is the opposite of what you'd think."
+- Watch-till-end hook: "Slide 4 is the one that hit me hardest."
+- Save-for-later trigger: "Save this. You'll come back to slide 5."
+- Direct stakes: "Get this wrong and you stay broke."
+
+Keep it 6-12 words. Lowercase or sentence-case (NOT all-caps — the chip and
+headline above already do the shouting). Empty string ("") for slides 2+.
 
 CRITICAL: image_search_query must be SHORT and CONCRETE — keywords a stock-photo site would index, not a sentence. Examples:
 - Headline "Two dads. Two money mindsets." → "luxury office sunset" or "marble corner office"

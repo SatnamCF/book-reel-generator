@@ -197,22 +197,24 @@ def _draw_headline(
     return img
 
 
-def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
-    """Larger, more aggressive hook styling for slide 1.
+def _draw_hook_headline(img: Image.Image, text: str, subline: str = "") -> Image.Image:
+    """Slide 1 hook: gold chip + big white headline + optional curiosity-gap subline.
 
-    Both the chip and the headline sit below SAFE_TOP so they don't
-    collide with Instagram's back-arrow + "Reels" header.
+    All three elements sit below SAFE_TOP so they don't collide with
+    Instagram's back-arrow + "Reels" header.
     """
     if not text:
         return img
     d = ImageDraw.Draw(img)
+
+    # Gold "STOP SCROLLING" chip
     chip_text = "STOP SCROLLING"
     f_chip = _font(38, bold=True)
     chip_bbox = d.textbbox((0, 0), chip_text, font=f_chip)
     chip_w = chip_bbox[2] - chip_bbox[0]
     chip_h = chip_bbox[3] - chip_bbox[1]
     chip_pad_x, chip_pad_y = 28, 10
-    chip_y = SAFE_TOP + 20  # was 200; now sits ~300px from top
+    chip_y = SAFE_TOP + 20
     d.rounded_rectangle(
         [
             W // 2 - chip_w // 2 - chip_pad_x,
@@ -225,18 +227,32 @@ def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
     )
     d.text((W // 2, chip_y + chip_h // 2), chip_text, font=f_chip, fill=(35, 25, 10), anchor="mm")
 
-    # Bigger headline, anchored below the chip
+    # Big white headline below the chip
     lines, actual_size = _wrap_to_fit(text, 120, TEXT_MAX_WIDTH)
     fnt = _font(actual_size, bold=True)
     ascent, descent = fnt.getmetrics()
     line_h = ascent + descent + 8
-    y = chip_y + chip_h + chip_pad_y + 60  # chip bottom + breathing room
+    y = chip_y + chip_h + chip_pad_y + 60
     d = ImageDraw.Draw(img)
     for line in lines:
         for dx, dy in ((5, 5), (3, 3), (-2, -2), (2, -2), (-2, 2)):
             d.text((W // 2 + dx, y + dy), line, font=fnt, fill=(0, 0, 0), anchor="mt")
         d.text((W // 2, y), line, font=fnt, fill=(255, 255, 255), anchor="mt")
         y += line_h
+
+    # Optional subline (curiosity-gap teaser) under the headline
+    if subline:
+        sub_y = y + 20  # 20px gap below the last headline line
+        sub_lines, sub_size = _wrap_to_fit(subline, 50, TEXT_MAX_WIDTH)
+        f_sub = _font(sub_size, bold=True)
+        sub_ascent, sub_descent = f_sub.getmetrics()
+        sub_line_h = sub_ascent + sub_descent + 4
+        for sline in sub_lines:
+            for dx, dy in ((3, 3), (-1, 1), (1, -1)):
+                d.text((W // 2 + dx, sub_y + dy), sline, font=f_sub, fill=(0, 0, 0), anchor="mt")
+            # Slightly warm/gold tint to differentiate from the main headline
+            d.text((W // 2, sub_y), sline, font=f_sub, fill=(255, 230, 170), anchor="mt")
+            sub_y += sub_line_h
     return img
 
 
@@ -314,7 +330,7 @@ def render_slide(slide: dict, slide_index: int = 0) -> Image.Image:
     img = _add_vignette(img, strength=80)
     img = _add_cinematic_gradient(img)
     if slide.get("type") == "hook":
-        img = _draw_hook_headline(img, slide.get("headline", ""))
+        img = _draw_hook_headline(img, slide.get("headline", ""), slide.get("hook_subline", ""))
     else:
         # CTA always top so the gold pill at bottom doesn't collide
         position = "top" if slide.get("type") == "cta" else slide.get("text_position", "top")
