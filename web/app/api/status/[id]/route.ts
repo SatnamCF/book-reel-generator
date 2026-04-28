@@ -1,23 +1,26 @@
 import { NextResponse } from "next/server";
 
-// Disable Next.js caching — every poll must hit GitHub fresh,
-// otherwise the response gets frozen on the first "in_progress" reply.
+// Force every poll to hit GitHub fresh — never cache the response.
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 /**
- * GET /api/status/[id]
+ * GET /api/status/[id]?since=<ISO_timestamp>
  *
- * Polls the workflow run status. Once complete and successful, finds the
- * matching GitHub Release (auto-published by the workflow) and returns its
- * MP4 download URL.
+ * Returns the newest GitHub Release that:
+ *   (a) was created at or after `since` (the dispatch time), AND
+ *   (b) has an .mp4 asset attached.
+ *
+ * If found → { ready: true, downloadUrl, releaseUrl }
+ * Otherwise → { ready: false }   (client keeps polling)
+ *
+ * `id` (the workflow run id) is optional — used only to surface a clean
+ * "workflow failed" message if the run finished with non-success.
  */
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
-  const runId = Number(id);
-  if (!runId || Number.isNaN(runId)) {
-    return NextResponse.json({ error: "Invalid run id" }, { status: 400 });
-  }
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const url = new URL(req.url);
+  const since = url.searchParams.get("since");
+  const sinceMs = since ? new Date(since).getTime() : 0;
 
   const owner = process.env.GITHUB_OWNER!;
   const repo = process.env.GITHUB_REPO!;
@@ -32,24 +35,11 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     "X-GitHub-Api-Version": "2022-11-28",
   };
 
-  // 1. Run status
-  const runRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`, { headers: auth });
-  if (!runRes.ok) {
-    return NextResponse.json({ error: `Run lookup failed (${runRes.status})` }, { status: 502 });
-  }
-  const run = await runRes.json();
-
-  if (run.status !== "completed") {
-    return NextResponse.json({ status: run.status, conclusion: null });
-  }
-  if (run.conclusion !== "success") {
-    return NextResponse.json({ status: "completed", conclusion: run.conclusion });
-  }
-
-  // 2. Find the release the workflow just published.
+  // 1. Look at the most recent releases — find the newest one created since
+  //    the user's dispatch that has an MP4 attached.
   const releasesRes = await fetch(
     `https://api.github.com/repos/${owner}/${repo}/releases?per_page=20`,
-    { headers: auth },
+    { headers: auth, cache: "no-store" },
   );
   if (!releasesRes.ok) {
     return NextResponse.json({ error: `Release lookup failed (${releasesRes.status})` }, { status: 502 });
@@ -61,33 +51,43 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
     html_url?: string;
   }> = await releasesRes.json();
 
-  // Strategy 1: exact match on `Run: ${runId}` in body
-  let release = releases.find((r) => r.body?.includes(`Run: ${runId}`));
-
-  // Strategy 2: fallback — release created after the run finished, within ±2 min
-  if (!release && run.updated_at) {
-    const runFinishedAt = new Date(run.updated_at).getTime();
-    release = releases.find((r) => {
+  const candidate = releases
+    .filter((r) => {
       if (!r.created_at) return false;
-      const releaseCreatedAt = new Date(r.created_at).getTime();
-      return Math.abs(releaseCreatedAt - runFinishedAt) < 2 * 60 * 1000;
+      if (new Date(r.created_at).getTime() < sinceMs) return false;
+      return (r.assets || []).some((a) => a.name.toLowerCase().endsWith(".mp4"));
+    })
+    .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())[0];
+
+  if (candidate) {
+    const mp4 = (candidate.assets || []).find((a) => a.name.toLowerCase().endsWith(".mp4"))!;
+    return NextResponse.json({
+      ready: true,
+      downloadUrl: mp4.browser_download_url,
+      releaseUrl: candidate.html_url,
     });
   }
 
-  if (!release) {
-    // Release publishes a moment after the run completes — tell the client to keep polling
-    return NextResponse.json({ status: "completed", conclusion: "success", downloadUrl: null });
+  // 2. No release yet — if we have a runId, surface failure clearly so the
+  //    client doesn't poll forever.
+  const runId = Number(params.id);
+  if (runId && !Number.isNaN(runId)) {
+    const runRes = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/actions/runs/${runId}`,
+      { headers: auth, cache: "no-store" },
+    );
+    if (runRes.ok) {
+      const run = await runRes.json();
+      if (run.status === "completed" && run.conclusion && run.conclusion !== "success") {
+        return NextResponse.json({
+          ready: false,
+          failed: true,
+          conclusion: run.conclusion,
+          runUrl: `https://github.com/${owner}/${repo}/actions/runs/${runId}`,
+        });
+      }
+    }
   }
 
-  const mp4 = (release.assets || []).find((a) => a.name.endsWith(".mp4"));
-  if (!mp4) {
-    return NextResponse.json({ error: "Release found but no MP4 asset attached" }, { status: 502 });
-  }
-
-  return NextResponse.json({
-    status: "completed",
-    conclusion: "success",
-    downloadUrl: mp4.browser_download_url,
-    releaseUrl: release.html_url,
-  });
+  return NextResponse.json({ ready: false });
 }

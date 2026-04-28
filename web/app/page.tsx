@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 type Status =
   | { phase: "idle" }
   | { phase: "submitting" }
-  | { phase: "queued"; runId: number }
-  | { phase: "running"; runId: number; startedAt: number }
+  | { phase: "queued"; runId: number | null; dispatchedAt: string }
+  | { phase: "running"; runId: number | null; dispatchedAt: string; startedAt: number }
   | { phase: "ready"; downloadUrl: string; releaseUrl: string }
   | { phase: "error"; message: string };
 
@@ -38,14 +38,14 @@ export default function Home() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to start generation");
 
-      setStatus({ phase: "queued", runId: data.runId });
-      poll(data.runId, Date.now());
+      setStatus({ phase: "queued", runId: data.runId, dispatchedAt: data.dispatchedAt });
+      poll(data.runId, data.dispatchedAt, Date.now());
     } catch (err: unknown) {
       setStatus({ phase: "error", message: err instanceof Error ? err.message : "Unknown error" });
     }
   }
 
-  async function poll(runId: number, startedAt: number) {
+  async function poll(runId: number | null, dispatchedAt: string, startedAt: number) {
     try {
       // Hard timeout so we never poll forever silently
       if (Date.now() - startedAt > 12 * 60 * 1000) {
@@ -53,31 +53,32 @@ export default function Home() {
           phase: "error",
           message:
             "Took longer than 12 minutes — something likely failed. " +
-            `Check the Action logs at https://github.com/SatnamCF/book-reel-generator/actions/runs/${runId}`,
+            "Check https://github.com/SatnamCF/book-reel-generator/actions for the failing run.",
         });
         return;
       }
 
-      const res = await fetch(`/api/status/${runId}`);
+      const idForUrl = runId ?? 0;
+      const res = await fetch(`/api/status/${idForUrl}?since=${encodeURIComponent(dispatchedAt)}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Status check failed");
 
-      if (data.status === "completed" && data.conclusion === "success" && data.downloadUrl) {
+      if (data.ready && data.downloadUrl) {
         setStatus({ phase: "ready", downloadUrl: data.downloadUrl, releaseUrl: data.releaseUrl });
         return;
       }
-      if (data.status === "completed" && data.conclusion && data.conclusion !== "success") {
+      if (data.failed) {
         setStatus({
           phase: "error",
-          message:
-            `Workflow ${data.conclusion}. ` +
-            `View logs: https://github.com/SatnamCF/book-reel-generator/actions/runs/${runId}`,
+          message: `Workflow ${data.conclusion}. View logs: ${data.runUrl}`,
         });
         return;
       }
 
-      setStatus({ phase: "running", runId, startedAt });
-      pollTimer.current = setTimeout(() => poll(runId, startedAt), 8000);
+      setStatus({ phase: "running", runId, dispatchedAt, startedAt });
+      pollTimer.current = setTimeout(() => poll(runId, dispatchedAt, startedAt), 8000);
     } catch (err: unknown) {
       setStatus({ phase: "error", message: err instanceof Error ? err.message : "Unknown error" });
     }
@@ -155,14 +156,15 @@ export default function Home() {
 
         {status.phase === "queued" && (
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5 text-zinc-300">
-            Workflow queued. Run #{status.runId}.
+            Workflow queued{status.runId ? ` (Run #${status.runId})` : ""}.
           </div>
         )}
 
         {status.phase === "running" && (
           <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-5">
             <p className="text-zinc-300">
-              Generating your reel... usually takes 3-5 minutes. (Run #{status.runId})
+              Generating your reel... usually takes 3-5 minutes.
+              {status.runId ? ` (Run #${status.runId})` : ""}
             </p>
             <p className="mt-1 text-sm text-zinc-500">
               Elapsed: {elapsedMin}m {elapsedSec}s

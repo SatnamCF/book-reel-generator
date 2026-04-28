@@ -93,12 +93,11 @@ export async function POST(req: Request) {
     }
   }
 
-  if (!runId) {
-    return NextResponse.json(
-      { error: "Workflow dispatched but couldn't locate the run ID (try refreshing in a moment)" },
-      { status: 504 },
-    );
-  }
-
-  return NextResponse.json({ runId });
+  // Even if we couldn't match a runId, the workflow IS dispatched.
+  // We always return dispatchedAt so the status endpoint can find the
+  // resulting release by time-of-creation.
+  return NextResponse.json({
+    runId: runId ?? null,
+    dispatchedAt: dispatchedAt.toISOString(),
+  });
 }
