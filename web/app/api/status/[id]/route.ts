@@ -48,16 +48,23 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     body?: string;
     assets?: Array<{ name: string; browser_download_url: string }>;
     created_at?: string;
+    published_at?: string;
     html_url?: string;
   }> = await releasesRes.json();
 
+  // CRITICAL: use `published_at`, not `created_at`. GitHub's `created_at` for
+  // a release is the underlying tag's commit date — when all tags point at
+  // the same commit on main, they share an identical (much older) created_at.
+  // `published_at` is the actual time the release went live.
+  const releaseTime = (r: { published_at?: string; created_at?: string }) =>
+    new Date(r.published_at || r.created_at || 0).getTime();
+
   const candidate = releases
     .filter((r) => {
-      if (!r.created_at) return false;
-      if (new Date(r.created_at).getTime() < sinceMs) return false;
+      if (releaseTime(r) < sinceMs) return false;
       return (r.assets || []).some((a) => a.name.toLowerCase().endsWith(".mp4"));
     })
-    .sort((a, b) => new Date(b.created_at!).getTime() - new Date(a.created_at!).getTime())[0];
+    .sort((a, b) => releaseTime(b) - releaseTime(a))[0];
 
   if (candidate) {
     const mp4 = (candidate.assets || []).find((a) => a.name.toLowerCase().endsWith(".mp4"))!;
