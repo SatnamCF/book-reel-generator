@@ -40,6 +40,16 @@ TAIL_PAD = 0.10
 ZOOM_RANGE = 0.05
 CROSSFADE = 0.4
 
+# Instagram Reels safe areas — UI overlays cover these regions:
+#   Top: back arrow + "Reels" label   → ~280px reserved
+#   Bottom: profile pic + username + caption + audio → ~400px reserved
+#   Right: like/comment/share/save column → ~140px reserved
+# All text is positioned to stay clear of these regions.
+SAFE_TOP = 280
+SAFE_BOTTOM = 400
+SAFE_RIGHT = 140
+TEXT_MAX_WIDTH = W - 2 * SAFE_RIGHT  # 800px wide centered band
+
 
 # ----------------------------- fonts -----------------------------
 
@@ -142,14 +152,18 @@ def _draw_headline(
     text: str,
     position: str = "top",
     font_size: int = 100,
-    max_width: int = 920,
+    max_width: int = TEXT_MAX_WIDTH,
 ) -> Image.Image:
     """Bold white headline placed at top, center, or bottom of the slide.
 
+    All positions respect Instagram Reels safe areas (SAFE_TOP, SAFE_BOTTOM,
+    SAFE_RIGHT) so text never sits under the back-arrow, "Reels" label,
+    profile pic / username, or right-side action icons.
+
     `position`:
-        "top"    — top-anchored at y=260
-        "center" — vertically centered around H/2
-        "bottom" — bottom-anchored at y=H-460 (leaves room for safe area)
+        "top"    — top-anchored just below the SAFE_TOP region
+        "center" — vertically centered around H/2 (within safe band)
+        "bottom" — bottom-anchored just above the SAFE_BOTTOM region
     """
     if not text:
         return img
@@ -160,16 +174,15 @@ def _draw_headline(
     block_h = line_h * len(lines)
 
     if position == "center":
-        # First line's mid-anchor sits at center - block/2 + line/2
         first_y = H // 2 - block_h // 2 + line_h // 2
         anchor = "mm"
     elif position == "bottom":
-        # Block ends at H - 460 (safe-area for caption/CTA region)
-        last_y = H - 460
+        # Block ends just above the SAFE_BOTTOM region (with a small margin)
+        last_y = H - SAFE_BOTTOM - 40
         first_y = last_y - block_h + line_h
         anchor = "mm"
     else:  # top
-        first_y = 260
+        first_y = SAFE_TOP + 40  # 40px breathing room below the back-arrow row
         anchor = "mt"
 
     d = ImageDraw.Draw(img)
@@ -187,7 +200,8 @@ def _draw_headline(
 def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
     """Larger, more aggressive hook styling for slide 1.
 
-    Always top-positioned (chip + headline read top-to-bottom).
+    Both the chip and the headline sit below SAFE_TOP so they don't
+    collide with Instagram's back-arrow + "Reels" header.
     """
     if not text:
         return img
@@ -198,7 +212,7 @@ def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
     chip_w = chip_bbox[2] - chip_bbox[0]
     chip_h = chip_bbox[3] - chip_bbox[1]
     chip_pad_x, chip_pad_y = 28, 10
-    chip_y = 200
+    chip_y = SAFE_TOP + 20  # was 200; now sits ~300px from top
     d.rounded_rectangle(
         [
             W // 2 - chip_w // 2 - chip_pad_x,
@@ -211,12 +225,12 @@ def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
     )
     d.text((W // 2, chip_y + chip_h // 2), chip_text, font=f_chip, fill=(35, 25, 10), anchor="mm")
 
-    # Bigger headline, top-positioned (lower than default 260 to clear the chip)
-    lines, actual_size = _wrap_to_fit(text, 120, 940)
+    # Bigger headline, anchored below the chip
+    lines, actual_size = _wrap_to_fit(text, 120, TEXT_MAX_WIDTH)
     fnt = _font(actual_size, bold=True)
     ascent, descent = fnt.getmetrics()
     line_h = ascent + descent + 8
-    y = 320
+    y = chip_y + chip_h + chip_pad_y + 60  # chip bottom + breathing room
     d = ImageDraw.Draw(img)
     for line in lines:
         for dx, dy in ((5, 5), (3, 3), (-2, -2), (2, -2), (-2, 2)):
@@ -229,25 +243,42 @@ def _draw_hook_headline(img: Image.Image, text: str) -> Image.Image:
 def _draw_cta(img: Image.Image, book: str = "", author: str = "") -> Image.Image:
     """Premium CTA: book title + author + gold button + link-in-bio hint.
 
+    All elements sit ABOVE the SAFE_BOTTOM region so Instagram's username,
+    caption, and audio overlay don't cover them.
+
     Layout from top-of-CTA-block to bottom:
       [BOOK TITLE]   (large gold)
       by Author       (smaller white)
-      ─ divider ─
       [GRAB YOUR COPY →]   (gold pill)
       ↑ LINK IN BIO ↑      (gold tiny)
     """
     img = _add_bottom_gradient(img, max_alpha=200)
     d = ImageDraw.Draw(img)
 
+    # Anchor the WHOLE CTA block above the bottom safe area.
+    # Layout is built bottom-up:
+    #   bottom edge of "LINK IN BIO" = H - SAFE_BOTTOM - 20
+    link_bottom_y = H - SAFE_BOTTOM - 20
+    f_tiny = _font(30, bold=True)
+    link_text = "↑  LINK IN BIO  ↑"
+
+    # button sits 30px above link
+    btn_bot = link_bottom_y - 30 - 30  # link_text height ~30
+    btn_top = btn_bot - 100
+    # author 30px above button
+    author_y_baseline = btn_top - 30
+    # title above author
+    title_baseline = author_y_baseline - 50
+
     # Book title — large, gold, wrapped to fit width
+    title_block_h = 0
     if book:
-        title_lines, title_size = _wrap_to_fit(book.upper(), 64, 940)
+        title_lines, title_size = _wrap_to_fit(book.upper(), 64, TEXT_MAX_WIDTH)
         f_title = _font(title_size, bold=True)
         ascent, descent = f_title.getmetrics()
         line_h = ascent + descent + 4
         title_block_h = line_h * len(title_lines)
-        # Position: 480px above bottom (above the button at H-320)
-        title_y = H - 460 - title_block_h
+        title_y = title_baseline - title_block_h
         for i, line in enumerate(title_lines):
             y = title_y + i * line_h
             for dx, dy in ((4, 4), (-2, 2), (2, -2)):
@@ -255,27 +286,25 @@ def _draw_cta(img: Image.Image, book: str = "", author: str = "") -> Image.Image
             d.text((W // 2, y), line, font=f_title, fill=(255, 215, 100), anchor="mt")
     if author:
         f_author = _font(34, bold=False)
-        author_y = H - 410
         for dx, dy in ((3, 3), (-1, 1)):
-            d.text((W // 2 + dx, author_y + dy), f"by {author}", font=f_author, fill=(0, 0, 0), anchor="mt")
-        d.text((W // 2, author_y), f"by {author}", font=f_author, fill=(245, 245, 245), anchor="mt")
+            d.text((W // 2 + dx, author_y_baseline + dy), f"by {author}", font=f_author, fill=(0, 0, 0), anchor="mt")
+        d.text((W // 2, author_y_baseline), f"by {author}", font=f_author, fill=(245, 245, 245), anchor="mt")
 
-    # Gold pill button with drop shadow
-    btn_top, btn_bot = H - 320, H - 220
+    # Gold pill button with drop shadow — narrower so it clears right-side icons
+    btn_left, btn_right = SAFE_RIGHT, W - SAFE_RIGHT
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     sd = ImageDraw.Draw(shadow)
-    sd.rounded_rectangle([130, btn_top + 6, W - 130, btn_bot + 6], radius=50, fill=(0, 0, 0, 140))
+    sd.rounded_rectangle([btn_left, btn_top + 6, btn_right, btn_bot + 6], radius=50, fill=(0, 0, 0, 140))
     shadow = shadow.filter(ImageFilter.GaussianBlur(10))
     img = Image.alpha_composite(img.convert("RGBA"), shadow).convert("RGB")
     d = ImageDraw.Draw(img)
 
-    d.rounded_rectangle([130, btn_top, W - 130, btn_bot], radius=50, fill=(255, 215, 100))
+    d.rounded_rectangle([btn_left, btn_top, btn_right, btn_bot], radius=50, fill=(255, 215, 100))
     f_btn = _font(50, bold=True)
     d.text((W // 2, (btn_top + btn_bot) // 2), "GRAB YOUR COPY  →", font=f_btn, fill=(40, 25, 10), anchor="mm")
 
     # Link-in-bio hint
-    f_tiny = _font(30, bold=True)
-    d.text((W // 2, H - 170), "↑  LINK IN BIO  ↑", font=f_tiny, fill=(255, 215, 100), anchor="mt")
+    d.text((W // 2, link_bottom_y - 30), link_text, font=f_tiny, fill=(255, 215, 100), anchor="mt")
     return img
 
 
