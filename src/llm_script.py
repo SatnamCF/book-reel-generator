@@ -17,7 +17,9 @@ import re
 import anthropic
 
 MODEL = "claude-sonnet-4-5"
-WORDS_PER_SECOND = 2.3
+# Lower target → shorter scripts → calmer voiceover pace.
+# 1.85 words/sec ≈ ~111 wpm, comfortable narration speed.
+WORDS_PER_SECOND = 1.85
 
 
 SYSTEM_PROMPT = """You write punchy Instagram Reel scripts that summarize non-fiction books.

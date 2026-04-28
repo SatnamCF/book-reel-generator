@@ -377,13 +377,19 @@ def synth_voiceovers(slides: list[dict], voice_dir: Path, rate: str = "+10%") ->
 
 
 def _calc_rate(total_words: int, target_seconds: int) -> str:
+    """Pick a TTS rate so the spoken audio fits the target duration.
+
+    Capped at +20% to keep speech natural — better to overshoot the
+    target by a few seconds than to speak in a rushed monotone.
+    """
     if total_words == 0:
         return "+0%"
     available = max(1.0, target_seconds * 0.95)
     target_wpm = (total_words / available) * 60
     baseline_wpm = 115.0
     pct = round((target_wpm / baseline_wpm - 1.0) * 100)
-    pct = max(-15, min(60, pct))
+    # Hard cap at +20% — anything faster sounds rushed
+    pct = max(-15, min(20, pct))
     sign = "+" if pct >= 0 else ""
     return f"{sign}{pct}%"
 
